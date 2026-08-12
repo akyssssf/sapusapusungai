@@ -1,0 +1,115 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scripts/map_manager.gd" id="1_map"]
+[ext_resource type="PackedScene" path="res://scenes/entities/player_fish.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://scenes/entities/trash.tscn" id="3_trash"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="4_hud"]
+[ext_resource type="Script" path="res://scripts/light_shafts.gd" id="5_shafts"]
+[ext_resource type="Script" path="res://scripts/trash_director.gd" id="6_director"]
+[ext_resource type="PackedScene" path="res://scenes/entities/rush_hazard.tscn" id="7_rush"]
+[ext_resource type="Script" path="res://scripts/wildlife_director.gd" id="8_wildlife"]
+[ext_resource type="PackedScene" path="res://scenes/entities/local_fish.tscn" id="9_local"]
+[ext_resource type="PackedScene" path="res://scenes/entities/sapu_sapu.tscn" id="10_sapu"]
+[ext_resource type="Script" path="res://scripts/ecosystem_watch.gd" id="11_eco"]
+[ext_resource type="AudioStream" path="res://assets/audio/music/ciliwung_ambience.wav" id="12_music"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="13_pause"]
+
+[node name="Map2Ciliwung" type="Node2D"]
+script = ExtResource("1_map")
+map_index = 2
+next_map_path = "res://scenes/maps/map3_jeroan.tscn"
+next_map_label = "Kali Jeroan Madiun"
+intro_banner = "Sungai Ciliwung -- jangan sampai ikan lokal termakan."
+clear_banner = "Ukuran maksimum! Habiskan sampah dan hama sapu-sapunya."
+win_title = "SUNGAI CILIWUNG BERSIH"
+lose_title = "IKAN WADER KALAH"
+music = ExtResource("12_music")
+requires_map1 = true
+bypass_progress_gate = true
+world_size = Vector2(1664, 936)
+riverbed_height = 140.0
+wildlife_path = NodePath("WildlifeDirector")
+ecosystem_path = NodePath("EcosystemOverlay")
+
+[node name="Water" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0, 0, 1664, 0, 1664, 936, 0, 936)
+vertex_colors = PackedColorArray(0.286, 0.333, 0.322, 1, 0.286, 0.333, 0.322, 1, 0.063, 0.086, 0.106, 1, 0.063, 0.086, 0.106, 1)
+
+[node name="Silt" type="CPUParticles2D" parent="."]
+position = Vector2(832, 400)
+amount = 110
+lifetime = 9.0
+preprocess = 8.0
+randomness = 0.8
+emission_shape = 3
+emission_rect_extents = Vector2(892, 420)
+direction = Vector2(-1, -0.2)
+spread = 32.0
+gravity = Vector2(0, 0)
+initial_velocity_min = 6.0
+initial_velocity_max = 26.0
+scale_amount_min = 1.0
+scale_amount_max = 3.4
+color = Color(0.643, 0.6, 0.51, 0.24)
+
+[node name="SurfaceLine" type="Line2D" parent="."]
+points = PackedVector2Array(0, 5, 1664, 5)
+width = 10.0
+default_color = Color(0.51, 0.6, 0.62, 0.35)
+
+[node name="Riverbed" type="Polygon2D" parent="."]
+color = Color(0.129, 0.114, 0.09, 1)
+polygon = PackedVector2Array(0, 843.0, 52, 842.7, 104, 842.9, 156, 847.2, 208, 848.7, 260, 842.6, 312, 836.4, 364, 838.6, 416, 845.1, 468, 846.6, 520, 844.2, 572, 845.8, 624, 850.4, 676, 848.5, 728, 838.1, 780, 828.8, 832, 826.8, 884, 826.0, 936, 820.8, 988, 817.1, 1040, 821.9, 1092, 830.2, 1144, 831.9, 1196, 827.6, 1248, 826.3, 1300, 829.4, 1352, 829.0, 1404, 823.3, 1456, 821.5, 1508, 829.1, 1560, 838.7, 1612, 842.2, 1664, 843.4, 1664, 936, 0, 936)
+
+[node name="RiverbedTop" type="Polygon2D" parent="."]
+color = Color(0.263, 0.239, 0.184, 1)
+polygon = PackedVector2Array(0, 843.0, 52, 842.7, 104, 842.9, 156, 847.2, 208, 848.7, 260, 842.6, 312, 836.4, 364, 838.6, 416, 845.1, 468, 846.6, 520, 844.2, 572, 845.8, 624, 850.4, 676, 848.5, 728, 838.1, 780, 828.8, 832, 826.8, 884, 826.0, 936, 820.8, 988, 817.1, 1040, 821.9, 1092, 830.2, 1144, 831.9, 1196, 827.6, 1248, 826.3, 1300, 829.4, 1352, 829.0, 1404, 823.3, 1456, 821.5, 1508, 829.1, 1560, 838.7, 1612, 842.2, 1664, 843.4, 1664, 881.4, 1612, 880.2, 1560, 876.7, 1508, 867.1, 1456, 859.5, 1404, 861.3, 1352, 867.0, 1300, 867.4, 1248, 864.3, 1196, 865.6, 1144, 869.9, 1092, 868.2, 1040, 859.9, 988, 855.1, 936, 858.8, 884, 864.0, 832, 864.8, 780, 866.8, 728, 876.1, 676, 886.5, 624, 888.4, 572, 883.8, 520, 882.2, 468, 884.6, 416, 883.1, 364, 876.6, 312, 874.4, 260, 880.6, 208, 886.7, 156, 885.2, 104, 880.9, 52, 880.7, 0, 881.0)
+
+[node name="LightShafts" type="Node2D" parent="."]
+script = ExtResource("5_shafts")
+
+[node name="Shaft1" type="Polygon2D" parent="LightShafts"]
+color = Color(0.62, 0.75, 0.8, 0.028)
+polygon = PackedVector2Array(30, -40, 150, -40, 365, 760, 245, 760)
+[node name="Shaft2" type="Polygon2D" parent="LightShafts"]
+color = Color(0.62, 0.75, 0.8, 0.036)
+polygon = PackedVector2Array(470, -40, 560, -40, 735, 760, 645, 760)
+[node name="Shaft3" type="Polygon2D" parent="LightShafts"]
+color = Color(0.62, 0.75, 0.8, 0.044)
+polygon = PackedVector2Array(920, -40, 1055, -40, 1295, 760, 1160, 760)
+[node name="Shaft4" type="Polygon2D" parent="LightShafts"]
+color = Color(0.62, 0.75, 0.8, 0.052)
+polygon = PackedVector2Array(1330, -40, 1430, -40, 1620, 760, 1520, 760)
+
+[node name="TrashDirector" type="Node2D" parent="."]
+script = ExtResource("6_director")
+trash_scene = ExtResource("3_trash")
+rush_scene = ExtResource("7_rush")
+target_count = 26
+
+[node name="WildlifeDirector" type="Node2D" parent="."]
+script = ExtResource("8_wildlife")
+local_fish_scene = ExtResource("9_local")
+sapu_sapu_scene = ExtResource("10_sapu")
+local_fish_count = 7
+sapu_sapu_count = 6
+
+[node name="PlayerFish" parent="." instance=ExtResource("2_player")]
+position = Vector2(640, 400)
+
+[node name="EcosystemOverlay" type="CanvasLayer" parent="."]
+layer = 0
+script = ExtResource("11_eco")
+
+[node name="Veil" type="ColorRect" parent="EcosystemOverlay"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.043, 0.09, 0.153, 0)
+
+[node name="HUD" parent="." instance=ExtResource("4_hud")]
+
+[node name="PauseMenu" parent="." instance=ExtResource("13_pause")]

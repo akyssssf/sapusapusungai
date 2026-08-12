@@ -1,0 +1,26 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/puzzle_fish.gd" id="1_pf"]
+[ext_resource type="Texture2D" path="res://kenney_fish-pack_2/PNG/Double/fish_green.png" id="2_tex"]
+
+[sub_resource type="CircleShape2D" id="Circle_pf"]
+resource_local_to_scene = true
+radius = 30.0
+
+[node name="PuzzleFish" type="CharacterBody2D"]
+collision_layer = 1
+collision_mask = 16
+motion_mode = 1
+script = ExtResource("1_pf")
+
+[node name="Marker" type="Line2D" parent="."]
+points = PackedVector2Array(46.0, 0.0, 44.4, 11.9, 39.8, 23.0, 32.5, 32.5, 23.0, 39.8, 11.9, 44.4, 0.0, 46.0, -11.9, 44.4, -23.0, 39.8, -32.5, 32.5, -39.8, 23.0, -44.4, 11.9, -46.0, 0.0, -44.4, -11.9, -39.8, -23.0, -32.5, -32.5, -23.0, -39.8, -11.9, -44.4, -0.0, -46.0, 11.9, -44.4, 23.0, -39.8, 32.5, -32.5, 39.8, -23.0, 44.4, -11.9, 46.0, -0.0)
+width = 4.0
+default_color = Color(0.42, 0.94, 0.62, 1)
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.55, 0.55)
+texture = ExtResource("2_tex")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("Circle_pf")

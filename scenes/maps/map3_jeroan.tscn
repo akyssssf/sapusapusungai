@@ -1,0 +1,104 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/map3_manager.gd" id="1_m3"]
+[ext_resource type="PackedScene" path="res://scenes/entities/puzzle_fish.tscn" id="2_fish"]
+[ext_resource type="PackedScene" path="res://scenes/entities/obstacle_bamboo.tscn" id="3_bam"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud_map3.tscn" id="4_hud"]
+[ext_resource type="Script" path="res://scripts/duo_camera.gd" id="5_cam"]
+[ext_resource type="Texture2D" path="res://kenney_fish-pack_2/PNG/Double/fish_orange.png" id="6_orange"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="7_pause"]
+
+[node name="Map3Jeroan" type="Node2D"]
+script = ExtResource("1_m3")
+world_size = Vector2(1600, 900)
+bypass_progress_gate = true
+
+[node name="Water" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0, 0, 1600, 0, 1600, 900, 0, 900)
+vertex_colors = PackedColorArray(0.259, 0.404, 0.427, 1, 0.259, 0.404, 0.427, 1, 0.078, 0.153, 0.184, 1, 0.078, 0.153, 0.184, 1)
+
+[node name="Flow" type="CPUParticles2D" parent="."]
+position = Vector2(800, 450)
+amount = 90
+lifetime = 7.0
+preprocess = 6.0
+randomness = 0.7
+emission_shape = 3
+emission_rect_extents = Vector2(800, 300)
+direction = Vector2(-1, 0)
+spread = 12.0
+gravity = Vector2(0, 0)
+initial_velocity_min = 22.0
+initial_velocity_max = 62.0
+scale_amount_min = 1.0
+scale_amount_max = 3.0
+color = Color(0.769, 0.902, 0.933, 0.26)
+
+[node name="Banks" type="StaticBody2D" parent="."]
+collision_layer = 16
+collision_mask = 0
+
+[node name="TopFill" type="Polygon2D" parent="Banks"]
+color = Color(0.216, 0.204, 0.145, 1)
+polygon = PackedVector2Array(0, 0, 1600, 0, 1600, 118.4, 1560, 114.4, 1520, 110.4, 1480, 107.0, 1440, 104.6, 1400, 103.7, 1360, 104.8, 1320, 108.6, 1280, 115.2, 1240, 124.7, 1200, 137.0, 1160, 151.5, 1120, 167.1, 1080, 182.7, 1040, 196.8, 1000, 208.4, 960, 216.1, 920, 219.6, 880, 218.6, 840, 213.6, 800, 205.4, 760, 195.1, 720, 184.0, 680, 173.0, 640, 163.1, 600, 154.8, 560, 148.2, 520, 143.3, 480, 139.9, 440, 137.4, 400, 135.4, 360, 133.6, 320, 131.5, 280, 129.1, 240, 126.0, 200, 122.3, 160, 118.0, 120, 113.0, 80, 107.6, 40, 101.9, 0, 96.0)
+
+[node name="TopEdge" type="Line2D" parent="Banks"]
+points = PackedVector2Array(0, 96.0, 40, 101.9, 80, 107.6, 120, 113.0, 160, 118.0, 200, 122.3, 240, 126.0, 280, 129.1, 320, 131.5, 360, 133.6, 400, 135.4, 440, 137.4, 480, 139.9, 520, 143.3, 560, 148.2, 600, 154.8, 640, 163.1, 680, 173.0, 720, 184.0, 760, 195.1, 800, 205.4, 840, 213.6, 880, 218.6, 920, 219.6, 960, 216.1, 1000, 208.4, 1040, 196.8, 1080, 182.7, 1120, 167.1, 1160, 151.5, 1200, 137.0, 1240, 124.7, 1280, 115.2, 1320, 108.6, 1360, 104.8, 1400, 103.7, 1440, 104.6, 1480, 107.0, 1520, 110.4, 1560, 114.4, 1600, 118.4)
+width = 8.0
+default_color = Color(0.33, 0.325, 0.216, 1)
+
+[node name="BottomFill" type="Polygon2D" parent="Banks"]
+color = Color(0.196, 0.184, 0.129, 1)
+polygon = PackedVector2Array(0, 900, 1600, 900, 1600, 808.7, 1560, 801.5, 1520, 793.7, 1480, 785.5, 1440, 776.6, 1400, 767.0, 1360, 756.6, 1320, 745.1, 1280, 732.6, 1240, 719.1, 1200, 704.9, 1160, 690.8, 1120, 677.6, 1080, 666.4, 1040, 658.4, 1000, 654.5, 960, 655.6, 920, 661.8, 880, 673.0, 840, 688.2, 800, 706.3, 760, 725.9, 720, 745.2, 680, 763.2, 640, 778.5, 600, 790.6, 560, 799.2, 520, 804.3, 480, 806.3, 440, 805.6, 400, 803.0, 360, 799.0, 320, 794.3, 280, 789.3, 240, 784.5, 200, 780.4, 160, 777.1, 120, 774.9, 80, 774.0, 40, 774.4, 0, 776.0)
+
+[node name="BottomEdge" type="Line2D" parent="Banks"]
+points = PackedVector2Array(0, 776.0, 40, 774.4, 80, 774.0, 120, 774.9, 160, 777.1, 200, 780.4, 240, 784.5, 280, 789.3, 320, 794.3, 360, 799.0, 400, 803.0, 440, 805.6, 480, 806.3, 520, 804.3, 560, 799.2, 600, 790.6, 640, 778.5, 680, 763.2, 720, 745.2, 760, 725.9, 800, 706.3, 840, 688.2, 880, 673.0, 920, 661.8, 960, 655.6, 1000, 654.5, 1040, 658.4, 1080, 666.4, 1120, 677.6, 1160, 690.8, 1200, 704.9, 1240, 719.1, 1280, 732.6, 1320, 745.1, 1360, 756.6, 1400, 767.0, 1440, 776.6, 1480, 785.5, 1520, 793.7, 1560, 801.5, 1600, 808.7)
+width = 8.0
+default_color = Color(0.31, 0.302, 0.196, 1)
+
+[node name="TopShape" type="CollisionPolygon2D" parent="Banks"]
+polygon = PackedVector2Array(0, 0, 1600, 0, 1600, 118.4, 1560, 114.4, 1520, 110.4, 1480, 107.0, 1440, 104.6, 1400, 103.7, 1360, 104.8, 1320, 108.6, 1280, 115.2, 1240, 124.7, 1200, 137.0, 1160, 151.5, 1120, 167.1, 1080, 182.7, 1040, 196.8, 1000, 208.4, 960, 216.1, 920, 219.6, 880, 218.6, 840, 213.6, 800, 205.4, 760, 195.1, 720, 184.0, 680, 173.0, 640, 163.1, 600, 154.8, 560, 148.2, 520, 143.3, 480, 139.9, 440, 137.4, 400, 135.4, 360, 133.6, 320, 131.5, 280, 129.1, 240, 126.0, 200, 122.3, 160, 118.0, 120, 113.0, 80, 107.6, 40, 101.9, 0, 96.0)
+
+[node name="BottomShape" type="CollisionPolygon2D" parent="Banks"]
+polygon = PackedVector2Array(0, 900, 1600, 900, 1600, 808.7, 1560, 801.5, 1520, 793.7, 1480, 785.5, 1440, 776.6, 1400, 767.0, 1360, 756.6, 1320, 745.1, 1280, 732.6, 1240, 719.1, 1200, 704.9, 1160, 690.8, 1120, 677.6, 1080, 666.4, 1040, 658.4, 1000, 654.5, 960, 655.6, 920, 661.8, 880, 673.0, 840, 688.2, 800, 706.3, 760, 725.9, 720, 745.2, 680, 763.2, 640, 778.5, 600, 790.6, 560, 799.2, 520, 804.3, 480, 806.3, 440, 805.6, 400, 803.0, 360, 799.0, 320, 794.3, 280, 789.3, 240, 784.5, 200, 780.4, 160, 777.1, 120, 774.9, 80, 774.0, 40, 774.4, 0, 776.0)
+
+[node name="Obstacles" type="Node2D" parent="."]
+
+[node name="Sumbatan1" parent="Obstacles" instance=ExtResource("3_bam")]
+position = Vector2(600, 430)
+push_radius = 200.0
+hold_time = 1.4
+
+[node name="Sumbatan2" parent="Obstacles" instance=ExtResource("3_bam")]
+position = Vector2(1030, 310)
+push_radius = 200.0
+hold_time = 1.9
+
+[node name="Sumbatan3" parent="Obstacles" instance=ExtResource("3_bam")]
+position = Vector2(1380, 580)
+push_radius = 200.0
+hold_time = 2.4
+
+[node name="FishA" parent="." instance=ExtResource("2_fish")]
+position = Vector2(240, 380)
+idle_current_drift = 13.0
+display_name = "Wader A"
+marker_color = Color(0.42, 0.94, 0.62, 1)
+
+[node name="FishB" parent="." instance=ExtResource("2_fish")]
+position = Vector2(240, 540)
+idle_current_drift = 13.0
+display_name = "Wader B"
+marker_color = Color(1, 0.702, 0.322, 1)
+
+[node name="Sprite2D" parent="FishB" index="1"]
+texture = ExtResource("6_orange")
+
+[node name="DuoCamera" type="Camera2D" parent="."]
+position = Vector2(800, 450)
+script = ExtResource("5_cam")
+targets = [NodePath("../FishA"), NodePath("../FishB")]
+
+[node name="HUD" parent="." instance=ExtResource("4_hud")]
+
+[node name="PauseMenu" parent="." instance=ExtResource("7_pause")]

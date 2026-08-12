@@ -1,0 +1,327 @@
+[gd_scene load_steps=18 format=3]
+
+[ext_resource type="Script" path="res://scripts/map_manager.gd" id="1_map"]
+[ext_resource type="PackedScene" path="res://scenes/entities/player_fish.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://scenes/entities/trash.tscn" id="3_trash"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="4_hud"]
+[ext_resource type="Texture2D" path="res://kenney_fish-pack_2/PNG/Double/background_seaweed_c.png" id="5_bgweed"]
+[ext_resource type="Texture2D" path="res://kenney_fish-pack_2/PNG/Double/background_rock_a.png" id="6_bgrocka"]
+[ext_resource type="Texture2D" path="res://kenney_fish-pack_2/PNG/Double/background_rock_b.png" id="7_bgrockb"]
+[ext_resource type="Texture2D" path="res://kenney_fish-pack_2/PNG/Double/seaweed_green_a.png" id="8_weed"]
+[ext_resource type="Texture2D" path="res://kenney_fish-pack_2/PNG/Double/seaweed_grass_a.png" id="9_grass"]
+[ext_resource type="Texture2D" path="res://kenney_fish-pack_2/PNG/Double/rock_a.png" id="10_rocka"]
+[ext_resource type="Texture2D" path="res://kenney_fish-pack_2/PNG/Double/rock_b.png" id="11_rockb"]
+[ext_resource type="Texture2D" path="res://kenney_fish-pack_2/PNG/Double/bubble_a.png" id="12_bubble"]
+[ext_resource type="Script" path="res://scripts/sway.gd" id="13_sway"]
+[ext_resource type="Script" path="res://scripts/light_shafts.gd" id="14_shafts"]
+[ext_resource type="Script" path="res://scripts/trash_director.gd" id="15_director"]
+[ext_resource type="PackedScene" path="res://scenes/entities/boss_sapu.tscn" id="16_boss"]
+[ext_resource type="PackedScene" path="res://scenes/entities/rush_hazard.tscn" id="17_rush"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="18_pause"]
+
+[node name="Map1Brantas" type="Node2D"]
+script = ExtResource("1_map")
+map_index = 1
+next_map_path = "res://scenes/maps/map2_ciliwung.tscn"
+next_map_label = "Sungai Ciliwung"
+world_size = Vector2(1664, 936)
+riverbed_height = 140.0
+boss_scene = ExtResource("16_boss")
+
+[node name="Water" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0, 0, 1664, 0, 1664, 936, 0, 936)
+vertex_colors = PackedColorArray(0.361, 0.502, 0.451, 1, 0.361, 0.502, 0.451, 1, 0.106, 0.169, 0.161, 1, 0.106, 0.169, 0.161, 1)
+
+[node name="Silt" type="CPUParticles2D" parent="."]
+position = Vector2(832, 400)
+amount = 70
+lifetime = 10.0
+preprocess = 8.0
+randomness = 0.8
+emission_shape = 3
+emission_rect_extents = Vector2(892, 420)
+direction = Vector2(-1, -0.3)
+spread = 28.0
+gravity = Vector2(0, 0)
+initial_velocity_min = 7.0
+initial_velocity_max = 24.0
+scale_amount_min = 1.0
+scale_amount_max = 2.8
+color = Color(0.82, 0.94, 0.89, 0.2)
+
+[node name="SurfaceLine" type="Line2D" parent="."]
+points = PackedVector2Array(0, 5, 1664, 5)
+width = 10.0
+default_color = Color(0.62, 0.784, 0.729, 0.45)
+
+[node name="BackDecor" type="Node2D" parent="."]
+modulate = Color(0.33, 0.45, 0.42, 1)
+
+[node name="Back1" type="Sprite2D" parent="BackDecor"]
+position = Vector2(300, 783)
+scale = Vector2(1.3, 1.3)
+texture = ExtResource("8_weed")
+
+[node name="Back2" type="Sprite2D" parent="BackDecor"]
+position = Vector2(700, 767)
+scale = Vector2(1.6, 1.6)
+texture = ExtResource("8_weed")
+
+[node name="Back3" type="Sprite2D" parent="BackDecor"]
+position = Vector2(1240, 756)
+scale = Vector2(1.45, 1.45)
+texture = ExtResource("8_weed")
+
+[node name="Back4" type="Sprite2D" parent="BackDecor"]
+position = Vector2(500, 792)
+scale = Vector2(1.4, 1.4)
+texture = ExtResource("6_bgrocka")
+
+[node name="Back5" type="Sprite2D" parent="BackDecor"]
+position = Vector2(950, 747)
+scale = Vector2(1.7, 1.7)
+texture = ExtResource("7_bgrockb")
+
+[node name="Back6" type="Sprite2D" parent="BackDecor"]
+position = Vector2(1480, 782)
+scale = Vector2(1.25, 1.25)
+texture = ExtResource("6_bgrocka")
+
+[node name="Riverbed" type="Polygon2D" parent="."]
+color = Color(0.196, 0.149, 0.102, 1)
+polygon = PackedVector2Array(0, 844.8, 52, 841.7, 104, 842.0, 156, 846.3, 208, 846.2, 260, 839.6, 312, 836.0, 364, 842.4, 416, 852.3, 468, 854.7, 520, 849.9, 572, 847.0, 624, 847.8, 676, 844.2, 728, 831.9, 780, 819.9, 832, 818.1, 884, 823.6, 936, 825.8, 988, 822.9, 1040, 823.0, 1092, 829.1, 1144, 832.9, 1196, 827.2, 1248, 818.1, 1300, 817.0, 1352, 824.2, 1404, 830.3, 1456, 831.5, 1508, 835.3, 1560, 846.3, 1612, 856.7, 1664, 856.5, 1664, 936, 0, 936)
+
+[node name="RiverbedTop" type="Polygon2D" parent="."]
+color = Color(0.388, 0.333, 0.216, 1)
+polygon = PackedVector2Array(0, 844.8, 52, 841.7, 104, 842.0, 156, 846.3, 208, 846.2, 260, 839.6, 312, 836.0, 364, 842.4, 416, 852.3, 468, 854.7, 520, 849.9, 572, 847.0, 624, 847.8, 676, 844.2, 728, 831.9, 780, 819.9, 832, 818.1, 884, 823.6, 936, 825.8, 988, 822.9, 1040, 823.0, 1092, 829.1, 1144, 832.9, 1196, 827.2, 1248, 818.1, 1300, 817.0, 1352, 824.2, 1404, 830.3, 1456, 831.5, 1508, 835.3, 1560, 846.3, 1612, 856.7, 1664, 856.5, 1664, 896.5, 1612, 896.7, 1560, 886.3, 1508, 875.3, 1456, 871.5, 1404, 870.3, 1352, 864.2, 1300, 857.0, 1248, 858.1, 1196, 867.2, 1144, 872.9, 1092, 869.1, 1040, 863.0, 988, 862.9, 936, 865.8, 884, 863.6, 832, 858.1, 780, 859.9, 728, 871.9, 676, 884.2, 624, 887.8, 572, 887.0, 520, 889.9, 468, 894.7, 416, 892.3, 364, 882.4, 312, 876.0, 260, 879.6, 208, 886.2, 156, 886.3, 104, 882.0, 52, 881.7, 0, 884.8)
+
+[node name="FrontDecor" type="Node2D" parent="."]
+modulate = Color(0.72, 0.86, 0.78, 1)
+
+[node name="Plant1" type="Sprite2D" parent="FrontDecor"]
+position = Vector2(190, 853)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("8_weed")
+offset = Vector2(0, -64)
+script = ExtResource("13_sway")
+sway_deg = 5.1
+sway_speed = 0.55
+
+[node name="Plant2" type="Sprite2D" parent="FrontDecor"]
+position = Vector2(330, 843)
+scale = Vector2(0.95, 0.95)
+texture = ExtResource("9_grass")
+offset = Vector2(0, -64)
+script = ExtResource("13_sway")
+sway_deg = 5.5
+sway_speed = 0.73
+
+[node name="Plant3" type="Sprite2D" parent="FrontDecor"]
+position = Vector2(470, 861)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("8_weed")
+offset = Vector2(0, -64)
+script = ExtResource("13_sway")
+sway_deg = 4.6
+sway_speed = 0.91
+
+[node name="Plant4" type="Sprite2D" parent="FrontDecor"]
+position = Vector2(610, 854)
+scale = Vector2(0.78, 0.78)
+texture = ExtResource("9_grass")
+offset = Vector2(0, -64)
+script = ExtResource("13_sway")
+sway_deg = 5.0
+sway_speed = 1.09
+
+[node name="Plant5" type="Sprite2D" parent="FrontDecor"]
+position = Vector2(760, 830)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("8_weed")
+offset = Vector2(0, -64)
+script = ExtResource("13_sway")
+sway_deg = 4.3
+sway_speed = 0.55
+
+[node name="Plant6" type="Sprite2D" parent="FrontDecor"]
+position = Vector2(900, 831)
+scale = Vector2(1.0, 1.0)
+texture = ExtResource("8_weed")
+offset = Vector2(0, -64)
+script = ExtResource("13_sway")
+sway_deg = 5.6
+sway_speed = 0.73
+
+[node name="Plant7" type="Sprite2D" parent="FrontDecor"]
+position = Vector2(1040, 829)
+scale = Vector2(0.68, 0.68)
+texture = ExtResource("9_grass")
+offset = Vector2(0, -64)
+script = ExtResource("13_sway")
+sway_deg = 4.8
+sway_speed = 0.91
+
+[node name="Plant8" type="Sprite2D" parent="FrontDecor"]
+position = Vector2(1180, 836)
+scale = Vector2(0.85, 0.85)
+texture = ExtResource("8_weed")
+offset = Vector2(0, -64)
+script = ExtResource("13_sway")
+sway_deg = 5.2
+sway_speed = 1.09
+
+[node name="Plant9" type="Sprite2D" parent="FrontDecor"]
+position = Vector2(1330, 827)
+scale = Vector2(1.05, 1.05)
+texture = ExtResource("9_grass")
+offset = Vector2(0, -64)
+script = ExtResource("13_sway")
+sway_deg = 5.7
+sway_speed = 0.55
+
+[node name="Plant10" type="Sprite2D" parent="FrontDecor"]
+position = Vector2(1470, 838)
+scale = Vector2(0.62, 0.62)
+texture = ExtResource("8_weed")
+offset = Vector2(0, -64)
+script = ExtResource("13_sway")
+sway_deg = 4.6
+sway_speed = 0.73
+
+[node name="Plant11" type="Sprite2D" parent="FrontDecor"]
+position = Vector2(1600, 861)
+scale = Vector2(0.75, 0.75)
+texture = ExtResource("9_grass")
+offset = Vector2(0, -64)
+script = ExtResource("13_sway")
+sway_deg = 5.0
+sway_speed = 0.91
+
+[node name="Rock1" type="Sprite2D" parent="FrontDecor"]
+position = Vector2(270, 812)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("10_rocka")
+
+[node name="Rock2" type="Sprite2D" parent="FrontDecor"]
+position = Vector2(560, 828)
+scale = Vector2(0.48, 0.48)
+texture = ExtResource("11_rockb")
+
+[node name="Rock3" type="Sprite2D" parent="FrontDecor"]
+position = Vector2(830, 782)
+scale = Vector2(0.75, 0.75)
+texture = ExtResource("11_rockb")
+
+[node name="Rock4" type="Sprite2D" parent="FrontDecor"]
+position = Vector2(1120, 817)
+scale = Vector2(0.42, 0.42)
+texture = ExtResource("10_rocka")
+
+[node name="Rock5" type="Sprite2D" parent="FrontDecor"]
+position = Vector2(1400, 807)
+scale = Vector2(0.55, 0.55)
+texture = ExtResource("10_rocka")
+
+[node name="Rock6" type="Sprite2D" parent="FrontDecor"]
+position = Vector2(1620, 828)
+scale = Vector2(0.65, 0.65)
+texture = ExtResource("11_rockb")
+
+[node name="Bubbles" type="Node2D" parent="."]
+
+[node name="BubbleColumn1" type="CPUParticles2D" parent="Bubbles"]
+position = Vector2(240, 832)
+amount = 10
+lifetime = 5.5
+preprocess = 4.0
+randomness = 0.6
+emission_shape = 1
+emission_sphere_radius = 16.0
+direction = Vector2(0, -1)
+spread = 9.0
+gravity = Vector2(0, -22)
+initial_velocity_min = 26.0
+initial_velocity_max = 58.0
+scale_amount_min = 0.08
+scale_amount_max = 0.2
+color = Color(1, 1, 1, 0.32)
+texture = ExtResource("12_bubble")
+[node name="BubbleColumn2" type="CPUParticles2D" parent="Bubbles"]
+position = Vector2(700, 829)
+amount = 10
+lifetime = 5.5
+preprocess = 4.0
+randomness = 0.6
+emission_shape = 1
+emission_sphere_radius = 16.0
+direction = Vector2(0, -1)
+spread = 9.0
+gravity = Vector2(0, -22)
+initial_velocity_min = 26.0
+initial_velocity_max = 58.0
+scale_amount_min = 0.08
+scale_amount_max = 0.2
+color = Color(1, 1, 1, 0.32)
+texture = ExtResource("12_bubble")
+[node name="BubbleColumn3" type="CPUParticles2D" parent="Bubbles"]
+position = Vector2(1150, 823)
+amount = 10
+lifetime = 5.5
+preprocess = 4.0
+randomness = 0.6
+emission_shape = 1
+emission_sphere_radius = 16.0
+direction = Vector2(0, -1)
+spread = 9.0
+gravity = Vector2(0, -22)
+initial_velocity_min = 26.0
+initial_velocity_max = 58.0
+scale_amount_min = 0.08
+scale_amount_max = 0.2
+color = Color(1, 1, 1, 0.32)
+texture = ExtResource("12_bubble")
+[node name="BubbleColumn4" type="CPUParticles2D" parent="Bubbles"]
+position = Vector2(1560, 836)
+amount = 10
+lifetime = 5.5
+preprocess = 4.0
+randomness = 0.6
+emission_shape = 1
+emission_sphere_radius = 16.0
+direction = Vector2(0, -1)
+spread = 9.0
+gravity = Vector2(0, -22)
+initial_velocity_min = 26.0
+initial_velocity_max = 58.0
+scale_amount_min = 0.08
+scale_amount_max = 0.2
+color = Color(1, 1, 1, 0.32)
+texture = ExtResource("12_bubble")
+
+[node name="LightShafts" type="Node2D" parent="."]
+script = ExtResource("14_shafts")
+
+[node name="Shaft1" type="Polygon2D" parent="LightShafts"]
+color = Color(0.7, 0.96, 0.87, 0.050)
+polygon = PackedVector2Array(20, -40, 150, -40, 380, 780, 250, 780)
+[node name="Shaft2" type="Polygon2D" parent="LightShafts"]
+color = Color(0.7, 0.96, 0.87, 0.062)
+polygon = PackedVector2Array(430, -40, 525, -40, 715, 780, 620, 780)
+[node name="Shaft3" type="Polygon2D" parent="LightShafts"]
+color = Color(0.7, 0.96, 0.87, 0.074)
+polygon = PackedVector2Array(880, -40, 1025, -40, 1280, 780, 1135, 780)
+[node name="Shaft4" type="Polygon2D" parent="LightShafts"]
+color = Color(0.7, 0.96, 0.87, 0.086)
+polygon = PackedVector2Array(1290, -40, 1395, -40, 1600, 780, 1495, 780)
+
+[node name="TrashDirector" type="Node2D" parent="."]
+script = ExtResource("15_director")
+trash_scene = ExtResource("3_trash")
+rush_scene = ExtResource("17_rush")
+
+[node name="PlayerFish" parent="." instance=ExtResource("2_player")]
+position = Vector2(640, 400)
+
+[node name="HUD" parent="." instance=ExtResource("4_hud")]
+
+[node name="PauseMenu" parent="." instance=ExtResource("18_pause")]

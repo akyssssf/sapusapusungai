@@ -1,0 +1,212 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/main_menu.gd" id="1_menu"]
+[ext_resource type="PackedScene" path="res://scenes/ui/menu_backdrop.tscn" id="2_bg"]
+[ext_resource type="Theme" path="res://assets/ui/menu_theme.tres" id="3_theme"]
+
+[node name="MainMenu" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("3_theme")
+script = ExtResource("1_menu")
+
+[node name="Backdrop" parent="." instance=ExtResource("2_bg")]
+
+[node name="Title" type="Label" parent="."]
+
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 62.0
+offset_bottom = 132.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.898, 0.973, 1, 1)
+theme_override_colors/font_outline_color = Color(0.02, 0.05, 0.07, 0.95)
+theme_override_constants/outline_size = 10
+theme_override_constants/line_spacing = 6
+theme_override_font_sizes/font_size = 62
+text = "SAPU-SAPU SUNGAI"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="."]
+
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 138.0
+offset_bottom = 172.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.702, 0.827, 0.867, 1)
+theme_override_colors/font_outline_color = Color(0.02, 0.05, 0.07, 0.95)
+theme_override_constants/outline_size = 10
+theme_override_constants/line_spacing = 6
+theme_override_font_sizes/font_size = 22
+text = "Bersihkan sungainya. Jaga penghuninya."
+horizontal_alignment = 1
+
+[node name="PanelUtama" type="VBoxContainer" parent="."]
+unique_name_in_owner = true
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -280.0
+offset_top = -40.0
+offset_right = 280.0
+offset_bottom = 300.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
+alignment = 1
+[node name="ContinueButton" type="Button" parent="PanelUtama"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(420, 0)
+layout_mode = 2
+text = "LANJUTKAN"
+[node name="PlayButton" type="Button" parent="PanelUtama"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(420, 0)
+layout_mode = 2
+text = "PILIH BAB"
+[node name="SettingsButton" type="Button" parent="PanelUtama"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(420, 0)
+layout_mode = 2
+text = "PENGATURAN"
+[node name="CreditsButton" type="Button" parent="PanelUtama"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(420, 0)
+layout_mode = 2
+text = "KREDIT"
+[node name="QuitButton" type="Button" parent="PanelUtama"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(420, 0)
+layout_mode = 2
+text = "KELUAR"
+
+[node name="PanelPengaturan" type="VBoxContainer" parent="."]
+unique_name_in_owner = true
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -280.0
+offset_top = -110.0
+offset_right = 280.0
+offset_bottom = 230.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
+alignment = 1
+[node name="Judul" type="Label" parent="PanelPengaturan"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.898, 0.973, 1, 1)
+theme_override_colors/font_outline_color = Color(0.02, 0.05, 0.07, 0.9)
+theme_override_constants/outline_size = 7
+theme_override_constants/line_spacing = 6
+theme_override_font_sizes/font_size = 34
+text = "PENGATURAN"
+horizontal_alignment = 1
+[node name="LabelMusik" type="Label" parent="PanelPengaturan"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.741, 0.855, 0.894, 1)
+theme_override_colors/font_outline_color = Color(0.02, 0.05, 0.07, 0.9)
+theme_override_constants/outline_size = 7
+theme_override_constants/line_spacing = 6
+theme_override_font_sizes/font_size = 20
+text = "Volume musik"
+horizontal_alignment = 1
+[node name="MusicSlider" type="HSlider" parent="PanelPengaturan"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(420, 26)
+layout_mode = 2
+max_value = 1.0
+step = 0.05
+value = 0.8
+[node name="LabelEfek" type="Label" parent="PanelPengaturan"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.741, 0.855, 0.894, 1)
+theme_override_colors/font_outline_color = Color(0.02, 0.05, 0.07, 0.9)
+theme_override_constants/outline_size = 7
+theme_override_constants/line_spacing = 6
+theme_override_font_sizes/font_size = 20
+text = "Volume efek suara"
+horizontal_alignment = 1
+[node name="SfxSlider" type="HSlider" parent="PanelPengaturan"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(420, 26)
+layout_mode = 2
+max_value = 1.0
+step = 0.05
+value = 0.8
+[node name="ResetButton" type="Button" parent="PanelPengaturan"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(420, 0)
+layout_mode = 2
+text = "Hapus semua progres"
+[node name="BackFromSettings" type="Button" parent="PanelPengaturan"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(420, 0)
+layout_mode = 2
+text = "KEMBALI"
+
+[node name="PanelKredit" type="VBoxContainer" parent="."]
+unique_name_in_owner = true
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -280.0
+offset_top = -150.0
+offset_right = 280.0
+offset_bottom = 190.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+alignment = 1
+[node name="Judul" type="Label" parent="PanelKredit"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.898, 0.973, 1, 1)
+theme_override_colors/font_outline_color = Color(0.02, 0.05, 0.07, 0.9)
+theme_override_constants/outline_size = 7
+theme_override_constants/line_spacing = 6
+theme_override_font_sizes/font_size = 34
+text = "KREDIT"
+horizontal_alignment = 1
+[node name="Isi" type="Label" parent="PanelKredit"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.741, 0.855, 0.894, 1)
+theme_override_colors/font_outline_color = Color(0.02, 0.05, 0.07, 0.9)
+theme_override_constants/outline_size = 7
+theme_override_constants/line_spacing = 6
+theme_override_font_sizes/font_size = 19
+text = "SAPU-SAPU SUNGAI\nGEMASTIK XIX 2026  -  Pengembangan Aplikasi Permainan\n\nSprite ikan dan lingkungan: Kenney Fish Pack 2 (CC0, kenney.nl)\nMusik dan efek suara: dibangkitkan sendiri (sementara)\nMesin: Godot Engine 4\n\nBab 1 Kali Brantas  -  Bab 2 Sungai Ciliwung  -  Bab 3 Kali Jeroan Madiun"
+horizontal_alignment = 1
+[node name="BackFromCredits" type="Button" parent="PanelKredit"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(420, 0)
+layout_mode = 2
+text = "KEMBALI"
+
+[node name="TotalLabel" type="Label" parent="."]
+unique_name_in_owner = true
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 28.0
+offset_top = -48.0
+offset_right = 728.0
+offset_bottom = -20.0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.55)
+theme_override_colors/font_outline_color = Color(0.02, 0.05, 0.07, 0.8)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 18
+text = "Skor terbaik keseluruhan: 0"

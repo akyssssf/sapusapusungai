@@ -1,0 +1,88 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/light_shafts.gd" id="1_shafts"]
+[ext_resource type="Texture2D" path="res://kenney_fish-pack_2/PNG/Double/bubble_a.png" id="2_bubble"]
+
+[sub_resource type="Gradient" id="grad"]
+offsets = PackedFloat32Array(0, 0.55, 1)
+colors = PackedColorArray(0.286, 0.412, 0.404, 1, 0.153, 0.239, 0.259, 1, 0.043, 0.075, 0.106, 1)
+
+[sub_resource type="GradientTexture2D" id="gtex"]
+gradient = SubResource("grad")
+width = 32
+height = 256
+fill_from = Vector2(0, 0)
+fill_to = Vector2(0, 1)
+
+[node name="MenuBackdrop" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Water" type="TextureRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = SubResource("gtex")
+expand_mode = 1
+stretch_mode = 0
+
+[node name="Shafts" type="Node2D" parent="."]
+script = ExtResource("1_shafts")
+
+[node name="Shaft1" type="Polygon2D" parent="Shafts"]
+color = Color(0.7, 0.94, 0.9, 0.035)
+polygon = PackedVector2Array(-40, -60, 110, -60, 410, 820, 260, 820)
+
+[node name="Shaft2" type="Polygon2D" parent="Shafts"]
+color = Color(0.7, 0.94, 0.9, 0.045)
+polygon = PackedVector2Array(360, -60, 470, -60, 710, 820, 600, 820)
+
+[node name="Shaft3" type="Polygon2D" parent="Shafts"]
+color = Color(0.7, 0.94, 0.9, 0.055)
+polygon = PackedVector2Array(760, -60, 930, -60, 1250, 820, 1080, 820)
+
+[node name="Shaft4" type="Polygon2D" parent="Shafts"]
+color = Color(0.7, 0.94, 0.9, 0.065)
+polygon = PackedVector2Array(1120, -60, 1240, -60, 1500, 820, 1380, 820)
+
+[node name="Silt" type="CPUParticles2D" parent="."]
+position = Vector2(640, 360)
+amount = 70
+lifetime = 12.0
+preprocess = 10.0
+randomness = 0.8
+emission_shape = 3
+emission_rect_extents = Vector2(700, 400)
+direction = Vector2(-1, -0.3)
+spread = 30.0
+gravity = Vector2(0, 0)
+initial_velocity_min = 6.0
+initial_velocity_max = 22.0
+scale_amount_min = 1.0
+scale_amount_max = 2.6
+color = Color(0.82, 0.94, 0.91, 0.2)
+
+[node name="Bubbles" type="CPUParticles2D" parent="."]
+position = Vector2(640, 760)
+amount = 14
+lifetime = 9.0
+preprocess = 8.0
+randomness = 0.7
+emission_shape = 3
+emission_rect_extents = Vector2(660, 20)
+direction = Vector2(0, -1)
+spread = 10.0
+gravity = Vector2(0, -18)
+initial_velocity_min = 24.0
+initial_velocity_max = 54.0
+scale_amount_min = 0.07
+scale_amount_max = 0.18
+color = Color(1, 1, 1, 0.24)
+texture = ExtResource("2_bubble")

@@ -1,0 +1,45 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/player_fish.gd" id="1_player"]
+[ext_resource type="Script" path="res://scripts/game_camera.gd" id="3_camera"]
+[ext_resource type="Texture2D" path="res://kenney_fish-pack_2/PNG/Double/fish_green.png" id="2_wader"]
+[ext_resource type="Texture2D" path="res://kenney_fish-pack_2/PNG/Double/bubble_a.png" id="4_bubble"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+resource_local_to_scene = true
+radius = 22.5
+
+[node name="PlayerFish" type="CharacterBody2D"]
+collision_layer = 1
+collision_mask = 16
+motion_mode = 1
+script = ExtResource("1_player")
+
+[node name="DashTrail" type="CPUParticles2D" parent="."]
+emitting = false
+amount = 40
+lifetime = 0.55
+randomness = 0.5
+local_coords = false
+emission_shape = 1
+emission_sphere_radius = 15.0
+spread = 180.0
+gravity = Vector2(0, -50)
+initial_velocity_min = 0.0
+initial_velocity_max = 34.0
+scale_amount_min = 0.06
+scale_amount_max = 0.17
+color = Color(0.867, 0.988, 0.965, 0.62)
+texture = ExtResource("4_bubble")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.45, 0.45)
+texture = ExtResource("2_wader")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_body")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position_smoothing_enabled = true
+position_smoothing_speed = 6.0
+script = ExtResource("3_camera")

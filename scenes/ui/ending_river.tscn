@@ -1,0 +1,143 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ending_river.gd" id="1_end"]
+
+[node name="EndingRiver" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_end")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.157, 0.376, 0.463, 1)
+
+[node name="FlowLines" type="Node2D" parent="."]
+unique_name_in_owner = true
+
+[node name="Garis1" type="Line2D" parent="FlowLines"]
+points = PackedVector2Array(-400, 120, -140, 120)
+width = 6.0
+default_color = Color(0.65, 0.87, 0.96, 0.16)
+
+[node name="Garis2" type="Line2D" parent="FlowLines"]
+points = PackedVector2Array(-240, 166, 20, 166)
+width = 6.0
+default_color = Color(0.65, 0.87, 0.96, 0.21)
+
+[node name="Garis3" type="Line2D" parent="FlowLines"]
+points = PackedVector2Array(-80, 212, 180, 212)
+width = 6.0
+default_color = Color(0.65, 0.87, 0.96, 0.26)
+
+[node name="Garis4" type="Line2D" parent="FlowLines"]
+points = PackedVector2Array(80, 258, 340, 258)
+width = 6.0
+default_color = Color(0.65, 0.87, 0.96, 0.16)
+
+[node name="Garis5" type="Line2D" parent="FlowLines"]
+points = PackedVector2Array(240, 304, 500, 304)
+width = 6.0
+default_color = Color(0.65, 0.87, 0.96, 0.21)
+
+[node name="Garis6" type="Line2D" parent="FlowLines"]
+points = PackedVector2Array(400, 350, 660, 350)
+width = 6.0
+default_color = Color(0.65, 0.87, 0.96, 0.26)
+
+[node name="Garis7" type="Line2D" parent="FlowLines"]
+points = PackedVector2Array(560, 396, 820, 396)
+width = 6.0
+default_color = Color(0.65, 0.87, 0.96, 0.16)
+
+[node name="Garis8" type="Line2D" parent="FlowLines"]
+points = PackedVector2Array(720, 442, 980, 442)
+width = 6.0
+default_color = Color(0.65, 0.87, 0.96, 0.21)
+
+[node name="Garis9" type="Line2D" parent="FlowLines"]
+points = PackedVector2Array(880, 488, 1140, 488)
+width = 6.0
+default_color = Color(0.65, 0.87, 0.96, 0.26)
+
+[node name="Garis10" type="Line2D" parent="FlowLines"]
+points = PackedVector2Array(1040, 534, 1300, 534)
+width = 6.0
+default_color = Color(0.65, 0.87, 0.96, 0.16)
+
+[node name="Garis11" type="Line2D" parent="FlowLines"]
+points = PackedVector2Array(1200, 580, 1460, 580)
+width = 6.0
+default_color = Color(0.65, 0.87, 0.96, 0.21)
+
+[node name="Garis12" type="Line2D" parent="FlowLines"]
+points = PackedVector2Array(1360, 626, 1620, 626)
+width = 6.0
+default_color = Color(0.65, 0.87, 0.96, 0.26)
+
+[node name="Title" type="Label" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -560.0
+offset_top = -140.0
+offset_right = 560.0
+offset_bottom = -70.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.94, 0.99, 1, 1)
+theme_override_colors/font_outline_color = Color(0.043, 0.145, 0.192, 0.95)
+theme_override_constants/outline_size = 12
+theme_override_font_sizes/font_size = 58
+text = "SUNGAI LANCAR"
+horizontal_alignment = 1
+
+[node name="Body" type="Label" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -560.0
+offset_top = -40.0
+offset_right = 560.0
+offset_bottom = 66.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.82, 0.93, 0.96, 1)
+theme_override_colors/font_outline_color = Color(0.043, 0.145, 0.192, 0.9)
+theme_override_constants/outline_size = 8
+theme_override_constants/line_spacing = 8
+theme_override_font_sizes/font_size = 25
+text = "Sumbatan bambunya lepas dan airnya jalan lagi.
+Sungai bersih saja tidak cukup -- harus lancar,
+dan itu tidak bisa dikerjakan sendirian."
+horizontal_alignment = 1
+
+[node name="Hint" type="Label" parent="."]
+unique_name_in_owner = true
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -560.0
+offset_top = 110.0
+offset_right = 560.0
+offset_bottom = 148.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.71, 0.85, 0.9, 1)
+theme_override_colors/font_outline_color = Color(0.043, 0.145, 0.192, 0.9)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 23
+text = ""
+horizontal_alignment = 1
