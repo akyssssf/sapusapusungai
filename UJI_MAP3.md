@@ -72,6 +72,7 @@ itu yang bikin titik dorongnya jelas — tapi gambarnya sekarang organik:
 | **Sudut kisi diacak, bukan tiap petak** | Dua petak bertetangga berbagi sudut yang sama persis, jadi acakannya menyatu tanpa celah. Kalau tiap petak diacak sendiri, sambungannya robek di mana-mana. |
 | **Garis cuma di batas wilayah** | Kisi penuh menggambar 4 garis per petak sampai seluruh papan jadi jala. Sekarang garis hanya muncul di batas batu–air, seperti garis pantai. |
 | **Balok jadi ikatan bambu** | Beberapa batang dengan panjang dan kemiringan berbeda, diikat dua tali. Tabrakannya tetap kotak sepetak. |
+| **Tebing berbongkah batu** | Bongkahan besar di bibir tebing (sebagian **menjorok keluar petak**, memotong garis pantai) plus bongkahan kecil lebih gelap di dalamnya. Yang menghapus kesan kotak bukan bentuk tepinya, melainkan benda yang menyeberangi tepi itu. |
 | **Tepian dihias** | Rumput air dan batu kecil, semuanya miring — mata butuh sesuatu yang tidak sejajar kisi untuk berhenti melihat kisinya. Lorong dibiarkan bersih. |
 | **Bingkai petak tujuan** | Muncul hanya saat dorongan mungkin, di petak tempat balok akan mendarat. Pengganti kisi sebagai penunjuk jarak satu dorongan. |
 
@@ -122,6 +123,10 @@ pun digambar di layar.
 - 36 sudut bagian dalam teracak, 0 masih lurus; tepi luar papan tetap rapi
 - Logika petak tidak ikut berubah: tengah petak masih di kisi rapi, papan tetap
   bisa ditamatkan dalam 4 dorongan sesudah tampilannya dirombak
+- 97 bongkahan batu di tebing, 45 di antaranya menjorok keluar memotong garis pantai
+- **Tidak satu pun bongkahan menutupi tengah petak lorong** — bongkahan hanya boleh
+  menjorok ke tepian, tidak pernah ke alur air
+- Ukuran bongkahan 48–98 px terhadap petak 140 px (tidak ada yang raksasa atau titik)
 - Balok tidak bisa didorong ke mulut sungai (papan tidak bisa dibuat mustahil tanpa sadar)
 - Balok tidak bisa didorong ke petak yang sedang ditempati ikan
 
@@ -134,6 +139,8 @@ Main **tanpa membaca dokumen ini dulu.**
 - [ ] **Sekarang jelas titik dorongnya di mana?** (ini pertanyaan utamanya)
 - [ ] Muka balok yang menyala + panah: kelihatan, atau terlewat?
 - [ ] **Lorong gelap vs tepian terang: kebedaan?** Paham air cuma lewat yang gelap?
+- [ ] Tebing berbatu sekarang: sudah terasa seperti sungai, atau masih terbaca kotak?
+- [ ] Bongkahan yang menjorok ke tepian: enak dilihat, atau bikin ramai?
 - [ ] Wader B yang ikut sendiri: terasa membantu, atau malah menghalangi?
 - [ ] Pernah menunggu lama Wader B datang? (dia 12% lebih pelan dari kamu, sengaja)
 - [ ] Label "2 IKAN" di balok besar cukup untuk paham harus bawa ikan kedua?
@@ -198,7 +205,7 @@ Ukuran papan boleh berapa saja asal semua barisnya sama panjang.
 ## Belum ada — sengaja
 
 - **Sprite balok masih Polygon2D** bergaris, bukan gambar ikatan bambu sungguhan.
-- **Batu masih kotak polos** — belum ada tekstur tebing.
+
 - **Belum ada undo satu langkah**; yang ada baru ulang seluruh papan (R).
 - **Baru satu papan.** Kalau mekaniknya sudah terasa benar, menambah papan kedua tinggal
   menambah satu denah teks lagi.

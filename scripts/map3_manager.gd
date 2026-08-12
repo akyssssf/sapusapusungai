@@ -44,6 +44,16 @@ const JENIS_LORONG := 3
 
 const TEKSTUR_RUMPUT := preload("res://kenney_fish-pack_2/PNG/Double/seaweed_green_a.png")
 const TEKSTUR_BATU := preload("res://kenney_fish-pack_2/PNG/Double/rock_a.png")
+## Bongkahan untuk tebing. Yang "latar" bentuknya lebih bulat dan tumpul --
+## dipakai di dalam tebing; yang biasa lebih bersudut, dipakai di bibirnya.
+const BONGKAH_BIBIR := [
+	preload("res://kenney_fish-pack_2/PNG/Double/rock_a.png"),
+	preload("res://kenney_fish-pack_2/PNG/Double/rock_b.png"),
+]
+const BONGKAH_DALAM := [
+	preload("res://kenney_fish-pack_2/PNG/Double/background_rock_a.png"),
+	preload("res://kenney_fish-pack_2/PNG/Double/background_rock_b.png"),
+]
 
 ## Denah papan.
 ##   #  batu -- ikan maupun air tidak bisa lewat
@@ -266,6 +276,10 @@ func _bangun_papan() -> void:
 	# kanan belum ada isinya saat baris ini masih dibaca.
 	_gambar_dasar()
 	_gambar_garis_pantai()
+	# Bongkahan batu digambar SESUDAH garis pantai, jadi dia menindih garisnya.
+	# Justru itu yang diinginkan: garis lurus yang terpotong-potong bongkahan
+	# berhenti terbaca sebagai tepi petak.
+	_hiasi_tebing()
 	_hiasi_tepian()
 
 	_pasang_mulut(_masuk, "HULU", Color(0.55, 0.85, 0.98))
@@ -400,6 +414,81 @@ func _gambar_garis_pantai() -> void:
 				_air.add_child(garis)
 
 
+## Bongkahan batu di atas petak tebing.
+##
+## Tanpa ini tebingnya cuma blok gelap sepetak, dan sekeras apa pun tepinya
+## dibikin berkelok, isinya tetap terbaca sebagai kotak. Yang menghapus kesan
+## kotak bukan bentuk tepinya, melainkan benda-benda yang menyeberangi tepi itu.
+##
+## Dua lapis, dan pembagiannya disengaja:
+##   BIBIR  -- bongkahan besar tepat di sisi yang menghadap air, sebagian
+##             menjorok keluar petak. Inilah yang memotong garis pantai.
+##   DALAM  -- bongkahan lebih kecil dan lebih gelap di tengah petak, sekadar
+##             supaya bagian dalam tebing tidak rata.
+##
+## Bongkahan hanya boleh menjorok ke TEPIAN, tidak pernah ke lorong air. Lorong
+## adalah satu-satunya hal yang harus selalu terbaca jelas di papan ini; menutupi
+## tepinya dengan batu berarti mengaburkan jawaban puzzle-nya sendiri.
+func _hiasi_tebing() -> void:
+	var arah_sisi := [Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT]
+	for y in _baris:
+		for x in _kolom:
+			var p := Vector2i(x, y)
+			if _jenis(p) != JENIS_BATU:
+				continue
+
+			var acak := RandomNumberGenerator.new()
+			acak.seed = hash(p) + 4242
+			var pusat := tengah_petak(p)
+
+			for arah in arah_sisi:
+				var tetangga := _jenis(p + arah)
+				if tetangga == JENIS_BATU or tetangga == JENIS_LUAR:
+					continue
+
+				var d := Vector2(arah)
+				var tegak := Vector2(-d.y, d.x)
+				# Menjorok keluar hanya kalau di seberangnya tepian; kalau lorong,
+				# bongkahannya ditahan di dalam petak batu.
+				var menjorok := 0.12 if tetangga == JENIS_TEPIAN else -0.04
+
+				for i in 2:
+					var geser := acak.randf_range(-0.3, 0.3)
+					var bongkah := Sprite2D.new()
+					bongkah.texture = BONGKAH_BIBIR[acak.randi() % BONGKAH_BIBIR.size()]
+					bongkah.position = pusat + d * lebar_petak * (0.5 + menjorok) \
+						+ tegak * lebar_petak * geser
+					_ukur(bongkah, acak.randf_range(0.46, 0.7) * lebar_petak)
+					bongkah.rotation = acak.randf_range(-PI, PI)
+					bongkah.flip_h = acak.randf() < 0.5
+					bongkah.modulate = Color(1, 1, 1).lerp(
+						Color(0.44, 0.4, 0.3), acak.randf_range(0.25, 0.6))
+					_air.add_child(bongkah)
+
+			for i in 3:
+				var dalam := Sprite2D.new()
+				dalam.texture = BONGKAH_DALAM[acak.randi() % BONGKAH_DALAM.size()]
+				dalam.position = pusat + Vector2(
+					acak.randf_range(-0.3, 0.3), acak.randf_range(-0.3, 0.3)
+				) * lebar_petak
+				_ukur(dalam, acak.randf_range(0.34, 0.52) * lebar_petak)
+				dalam.rotation = acak.randf_range(-PI, PI)
+				# Jauh lebih gelap daripada bongkahan bibir: bagian dalam tebing
+				# harus mundur, bukan ikut menarik perhatian.
+				dalam.modulate = Color(0.3, 0.28, 0.21, acak.randf_range(0.55, 0.85))
+				_air.add_child(dalam)
+
+
+## Menyetel skala sprite berdasarkan LEBAR YANG DIINGINKAN, bukan angka skala
+## mentah. Semua tekstur Kenney kebetulan 128 px, tapi mengandalkan itu berarti
+## satu tekstur berukuran lain suatu saat akan merusak seluruh tata letak diam-diam.
+func _ukur(sprite: Sprite2D, lebar_px: float) -> void:
+	var asli := sprite.texture.get_width()
+	if asli <= 0:
+		return
+	sprite.scale = Vector2.ONE * (lebar_px / float(asli))
+
+
 ## Rumput air dan batu kecil di tepian.
 ##
 ## Bukan hiasan kosong: petak tepian yang polos tetap terbaca sebagai kotak
@@ -423,7 +512,7 @@ func _hiasi_tepian() -> void:
 			hias.position = tengah_petak(p) + Vector2(
 				acak.randf_range(-0.3, 0.3), acak.randf_range(-0.28, 0.3)
 			) * lebar_petak
-			hias.scale = Vector2.ONE * acak.randf_range(0.42, 0.72)
+			_ukur(hias, acak.randf_range(0.34, 0.58) * lebar_petak)
 			hias.rotation = acak.randf_range(-0.35, 0.35)
 			hias.modulate = Color(0.62, 0.78, 0.66, 0.55) if rumput \
 				else Color(0.5, 0.48, 0.4, 0.6)
