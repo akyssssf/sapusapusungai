@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/puzzle_fish.gd" id="1_pf"]
 [ext_resource type="Texture2D" path="res://kenney_fish-pack_2/PNG/Double/fish_green.png" id="2_tex"]
+[ext_resource type="Script" path="res://scripts/sprite_ikan.gd" id="sp_ikan"]
 
 [sub_resource type="CircleShape2D" id="Circle_pf"]
 resource_local_to_scene = true
@@ -18,9 +19,10 @@ points = PackedVector2Array(46.0, 0.0, 44.4, 11.9, 39.8, 23.0, 32.5, 32.5, 23.0,
 width = 4.0
 default_color = Color(0.42, 0.94, 0.62, 1)
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
-scale = Vector2(0.55, 0.55)
-texture = ExtResource("2_tex")
+[node name="Sprite2D" type="AnimatedSprite2D" parent="."]
+scale = Vector2(0.15, 0.15)
+script = ExtResource("sp_ikan")
+spesies = "wader_bintik"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("Circle_pf")

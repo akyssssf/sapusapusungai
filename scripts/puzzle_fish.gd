@@ -90,7 +90,7 @@ var arus: Vector2 = Vector2.ZERO
 
 var _wiggle_time: float = 0.0
 
-@onready var _sprite: Sprite2D = $Sprite2D
+@onready var _sprite: SpriteIkan = $Sprite2D
 @onready var _marker: Line2D = $Marker
 @onready var _collision: CollisionShape2D = $CollisionShape2D
 
@@ -216,13 +216,12 @@ func _keep_inside_bounds() -> void:
 
 
 func _animate(delta: float) -> void:
-	# Sprite ikan Kenney menghadap ke KANAN secara bawaan.
 	if absf(velocity.x) > flip_threshold:
-		_sprite.flip_h = velocity.x < 0.0
+		_sprite.hadap(velocity.x < 0.0)
 
 	var speed_ratio := clampf(velocity.length() / maxf(max_speed, 1.0), 0.0, 1.0)
 	var tilt := clampf(velocity.y / maxf(max_speed, 1.0), -1.0, 1.0) * deg_to_rad(max_tilt_deg)
-	if _sprite.flip_h:
+	if _sprite.menghadap_kiri():
 		tilt = -tilt
 	_sprite.rotation = lerp_angle(_sprite.rotation, tilt, clampf(8.0 * delta, 0.0, 1.0))
 
@@ -230,3 +229,4 @@ func _animate(delta: float) -> void:
 	# benar-benar beku terlihat seperti scene yang crash.
 	_wiggle_time += delta * (3.0 + 10.0 * speed_ratio)
 	_sprite.skew = sin(_wiggle_time) * deg_to_rad(wiggle_deg) * (0.25 + 0.75 * speed_ratio)
+	_sprite.laju(speed_ratio)

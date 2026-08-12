@@ -77,8 +77,8 @@ enum ControlScheme {
 @export var growth_per_level: float = 350.0
 ## Skala sprite di level 1 dan di level maksimum. Nilainya kecil karena
 ## teksturnya diambil dari folder PNG/Double (128 px) supaya tidak pecah.
-@export var scale_at_level_1: float = 0.45
-@export var scale_at_max_level: float = 1.05
+@export var scale_at_level_1: float = 0.115
+@export var scale_at_max_level: float = 0.27
 ## Radius tabrakan saat skala visual tepat 1.0 (~40% lebar tekstur).
 @export var base_radius: float = 50.0
 
@@ -99,7 +99,7 @@ var health: int = 3
 ## karena batas sungai itu milik map -- bukan milik ikan.
 var swim_bounds: Rect2 = Rect2()
 
-@onready var _sprite: Sprite2D = $Sprite2D
+@onready var _sprite: SpriteIkan = $Sprite2D
 @onready var _collision: CollisionShape2D = $CollisionShape2D
 @onready var _dash_trail: CPUParticles2D = $DashTrail
 @onready var camera: Camera2D = $Camera2D
@@ -204,7 +204,7 @@ func _try_dash(direction: Vector2) -> void:
 		# Tidak sedang menekan arah apa pun: melesat ke arah hadap sekarang.
 		# Tanpa cadangan ini, dash terasa "rusak" saat pemain hanya menekan
 		# tombolnya tanpa arah.
-		dir = Vector2.LEFT if _sprite.flip_h else Vector2.RIGHT
+		dir = Vector2.LEFT if _sprite.menghadap_kiri() else Vector2.RIGHT
 
 	_dash_direction = dir.normalized()
 	_dash_left = dash_duration
@@ -293,14 +293,14 @@ func _keep_inside_bounds() -> void:
 func _face_swim_direction() -> void:
 	# Sprite ikan Kenney menghadap ke KANAN secara bawaan.
 	if absf(velocity.x) > flip_threshold:
-		_sprite.flip_h = velocity.x < 0.0
+		_sprite.hadap(velocity.x < 0.0)
 
 
 func _tilt_body(delta: float) -> void:
 	# Moncong ikan ikut mendongak/menunduk sesuai kecepatan vertikal.
 	var vertical_ratio := clampf(velocity.y / maxf(current_max_speed(), 1.0), -1.0, 1.0)
 	var target_tilt := vertical_ratio * deg_to_rad(max_tilt_deg)
-	if _sprite.flip_h:
+	if _sprite.menghadap_kiri():
 		target_tilt = -target_tilt
 	_sprite.rotation = lerp_angle(_sprite.rotation, target_tilt, clampf(tilt_response * delta, 0.0, 1.0))
 
@@ -312,6 +312,7 @@ func _wiggle_body(delta: float) -> void:
 	var speed_ratio := clampf(velocity.length() / maxf(current_max_speed(), 1.0), 0.0, 1.0)
 	_wiggle_time += delta * (5.0 + 11.0 * speed_ratio)
 	_sprite.skew = sin(_wiggle_time) * deg_to_rad(wiggle_deg) * (0.3 + 0.7 * speed_ratio)
+	_sprite.laju(speed_ratio)
 
 
 # --- Pertumbuhan ------------------------------------------------------------

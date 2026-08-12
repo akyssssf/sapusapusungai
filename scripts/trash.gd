@@ -54,7 +54,30 @@ var _base_y: float = 0.0
 var _eaten: bool = false
 var _player: Node = null
 
+## Gambar sampah sungguhan, dikelompokkan per tingkat ukuran.
+##
+## Tingkatnya menentukan seberapa besar bahayanya, jadi gambarnya juga harus
+## ikut naik: kantong kresek untuk yang bisa ditelan ikan kecil, papan dan
+## tumpukan sampah untuk yang harus dihindari sampai ikannya cukup besar.
+## Pemain menilai bahaya dari SILUET jauh sebelum sempat membaca cincinnya.
+const GAMBAR_PER_TINGKAT := [
+	[
+		preload("res://assets/environment/plastic_bottle.png"),
+		preload("res://assets/environment/plastic_bag.png"),
+	],
+	[
+		preload("res://assets/environment/kresek_bag.png"),
+		preload("res://assets/environment/wooden_plank.png"),
+	],
+	[
+		preload("res://assets/environment/trash_pile.png"),
+		preload("res://assets/environment/driftwood_log.png"),
+		preload("res://assets/environment/banana_tree.png"),
+	],
+]
+
 @onready var _visual: Node2D = $Visual
+@onready var _gambar: Sprite2D = $Visual/Gambar
 @onready var _danger_ring: Node2D = $Visual/DangerRing
 @onready var _collision: CollisionShape2D = $CollisionShape2D
 @onready var _burst: CPUParticles2D = $Burst
@@ -81,9 +104,14 @@ func _apply_tier() -> void:
 
 	# Hanya bentuk yang sesuai ukurannya yang ditampilkan; dua sisanya cuma
 	# ikut menumpang di scene supaya tidak perlu tiga file .tscn terpisah.
-	$Visual/Kecil.visible = tier == Tier.KECIL
-	$Visual/Sedang.visible = tier == Tier.SEDANG
-	$Visual/Besar.visible = tier == Tier.BESAR
+	var pilihan: Array = GAMBAR_PER_TINGKAT[tier]
+	_gambar.texture = pilihan[randi() % pilihan.size()]
+	# Skala dihitung dari radius tabrakannya, bukan angka tetap. Dengan begitu
+	# yang dilihat pemain selalu sebesar yang benar-benar bisa menabraknya --
+	# sampah yang tampak lebih kecil daripada hitboxnya terasa curang.
+	var lebar: float = float(_gambar.texture.get_width())
+	if lebar > 0.0:
+		_gambar.scale = Vector2.ONE * (float(data["radius"]) * 2.35 / lebar)
 
 	_danger_ring.scale = Vector2.ONE * (data["radius"] / 30.0)
 	_burst.amount = 8 + tier * 6

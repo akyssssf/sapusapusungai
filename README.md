@@ -8,6 +8,12 @@ Game 2D bertema sungai-sungai Indonesia, dibuat dengan **Godot 4.7** untuk
 Kamu adalah seekor ikan wader. Tiga sungai sungguhan, tiga masalah yang berbeda —
 dan satu kesimpulan yang cuma bisa didapat dengan memainkan ketiganya.
 
+| Bab 1 — Kali Brantas | Bab 2 — Sungai Ciliwung |
+|---|---|
+| ![Bab 1](docs/bab1.png) | ![Bab 2](docs/bab2.png) |
+
+![Bab 3 — Kali Jeroan](docs/bab3.png)
+
 ---
 
 ## Tiga bab, tiga jenis permainan
@@ -75,8 +81,12 @@ scenes/
 scripts/
   autoload/    GameState (progres & simpanan), AudioManager, SceneRouter
   story.gd     SELURUH naskah cerita dan isi papan instruksi, dalam satu berkas
-assets/        audio sintetis buatan sendiri
-kenney_fish-pack_2/   sprite ikan & lingkungan (CC0)
+assets/
+  aset gemastik/   sprite tujuh spesies ikan, beranimasi
+  environment/     sprite sampah & lingkungan
+  audio/           bunyi sintetis buatan sendiri
+kenney_fish-pack_2/  hiasan rumput air & batu Bab 3 (CC0)
+tools/           alat pengembangan (pengambil tangkapan layar)
 ```
 
 Beberapa keputusan yang sengaja:
@@ -102,14 +112,35 @@ otomatis** lewat Godot headless dan hal-hal yang masih butuh dinilai manusia:
 
 ## Aset & lisensi
 
-- **Sprite**: [Kenney Fish Pack 2](https://kenney.nl/assets/fish-pack) — **CC0**, bebas
-  dipakai. Sampah, sapu-sapu, dan balok bambu masih `Polygon2D` buatan sendiri.
-- **Audio**: seluruhnya sintetis, dibuat sendiri untuk proyek ini.
-- Kredit lengkap juga dicantumkan di dalam game, lewat menu **KREDIT**.
+- **Sprite ikan** — aset proyek ini, di `assets/aset gemastik/`. Tujuh spesies
+  (wader bintik, seluang, nilem, kancra, gabus, baung, dan sapu-sapu invasif), masing-masing
+  beranimasi: berenang 8 bingkai dan makan 6 bingkai, digambar terpisah untuk arah kiri
+  dan kanan.
+- **Sprite sampah & lingkungan** — aset proyek ini, di `assets/environment/`: botol
+  plastik, kantong kresek, papan kayu, kayu hanyut, tumpukan sampah.
+- **Hiasan lingkungan Bab 3** (rumput air, bongkahan batu) —
+  [Kenney Fish Pack 2](https://kenney.nl/assets/fish-pack), **CC0**.
+- **Audio** — seluruhnya sintetis, dibuat sendiri untuk proyek ini.
+
+Kredit juga dicantumkan di dalam game lewat menu **KREDIT**.
 
 ## Yang belum ada
 
-- Sprite asli untuk sampah, sapu-sapu, dan bos (masih `Polygon2D`)
+- Sprite bos Induk Sapu-Sapu masih `Polygon2D` (pelat dan insang menyalanya adalah
+  penanda permainan, jadi belum bisa langsung ditukar gambar)
 - Ilustrasi cutscene (panelnya dirakit dari warna air, jumlah ikan, dan kepadatan sampah)
 - Kontrol sentuh Android — mode pointer sudah ada, joystick layarnya belum
 - Pengaturan resolusi, layar penuh, dan ganti tombol
+
+---
+
+## Untuk pengembang
+
+Tangkapan layar di README dibuat ulang lewat alat di `tools/`:
+
+```bash
+godot --path . res://tools/ambil_gambar.tscn
+```
+
+Harus dijalankan **tanpa** `--headless` — perender headless tidak menggambar apa pun.
+Hasilnya ke folder `user://`, lalu disalin ke `docs/`.

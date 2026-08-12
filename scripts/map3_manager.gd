@@ -354,7 +354,10 @@ func _gambar_dasar() -> void:
 			isi.polygon = segi
 			match jenis:
 				JENIS_BATU:
-					isi.color = Color(0.17, 0.16, 0.12)
+					# Cukup terang untuk terbaca sebagai BATU, bukan lubang.
+					# Warna sebelumnya (0.17) nyaris sehitam latar, jadi tebingnya
+					# terlihat seperti kartu gelap yang mengambang di atas tepian.
+					isi.color = Color(0.235, 0.215, 0.16)
 				JENIS_LORONG:
 					# Lorong jelas lebih gelap daripada tepian -- perbedaan
 					# kedalaman inilah satu-satunya yang memberi tahu pemain ke
@@ -404,8 +407,11 @@ func _gambar_garis_pantai() -> void:
 				garis.begin_cap_mode = Line2D.LINE_CAP_ROUND
 				garis.end_cap_mode = Line2D.LINE_CAP_ROUND
 				if tetangga == JENIS_BATU or tetangga == JENIS_LUAR:
-					garis.width = 7.0
-					garis.default_color = Color(0.31, 0.28, 0.19)
+					# Tipis saja. Garis tebal mengelilingi bentuk gelap membuatnya
+					# terbaca sebagai KARTU BERBINGKAI, bukan sebagai massa batu --
+					# yang menyudutkan tebingnya justru bingkainya sendiri.
+					garis.width = 4.0
+					garis.default_color = Color(0.38, 0.35, 0.25)
 				else:
 					# Batas lorong dengan tepian: garis samar kebiruan, cukup
 					# untuk menunjukkan tepi alur airnya tanpa jadi pagar.
@@ -450,32 +456,40 @@ func _hiasi_tebing() -> void:
 				var tegak := Vector2(-d.y, d.x)
 				# Menjorok keluar hanya kalau di seberangnya tepian; kalau lorong,
 				# bongkahannya ditahan di dalam petak batu.
-				var menjorok := 0.12 if tetangga == JENIS_TEPIAN else -0.04
+				# Menjorok secukupnya saja. Terlalu jauh, bongkahannya menutupi
+				# tepian sampai pemain tidak lagi bisa menebak sejauh mana tebing
+				# itu sebenarnya -- padahal tebing yang menghalangi renangnya.
+				var menjorok := 0.05 if tetangga == JENIS_TEPIAN else -0.06
 
 				for i in 2:
-					var geser := acak.randf_range(-0.3, 0.3)
+					var geser := acak.randf_range(-0.32, 0.32)
 					var bongkah := Sprite2D.new()
 					bongkah.texture = BONGKAH_BIBIR[acak.randi() % BONGKAH_BIBIR.size()]
 					bongkah.position = pusat + d * lebar_petak * (0.5 + menjorok) \
 						+ tegak * lebar_petak * geser
-					_ukur(bongkah, acak.randf_range(0.46, 0.7) * lebar_petak)
+					_ukur(bongkah, acak.randf_range(0.5, 0.76) * lebar_petak)
 					bongkah.rotation = acak.randf_range(-PI, PI)
 					bongkah.flip_h = acak.randf() < 0.5
-					bongkah.modulate = Color(1, 1, 1).lerp(
-						Color(0.44, 0.4, 0.3), acak.randf_range(0.25, 0.6))
+					# Jelas lebih TERANG daripada isian tebing, kalau tidak
+					# bongkahannya tenggelam ke dalam warna dasarnya sendiri dan
+					# tebingnya kembali terlihat rata.
+					bongkah.modulate = Color(0.66, 0.62, 0.5).lerp(
+						Color(0.42, 0.39, 0.29), acak.randf_range(0.0, 0.55))
 					_air.add_child(bongkah)
 
 			for i in 3:
 				var dalam := Sprite2D.new()
 				dalam.texture = BONGKAH_DALAM[acak.randi() % BONGKAH_DALAM.size()]
 				dalam.position = pusat + Vector2(
-					acak.randf_range(-0.3, 0.3), acak.randf_range(-0.3, 0.3)
+					acak.randf_range(-0.32, 0.32), acak.randf_range(-0.32, 0.32)
 				) * lebar_petak
-				_ukur(dalam, acak.randf_range(0.34, 0.52) * lebar_petak)
+				_ukur(dalam, acak.randf_range(0.42, 0.66) * lebar_petak)
 				dalam.rotation = acak.randf_range(-PI, PI)
-				# Jauh lebih gelap daripada bongkahan bibir: bagian dalam tebing
-				# harus mundur, bukan ikut menarik perhatian.
-				dalam.modulate = Color(0.3, 0.28, 0.21, acak.randf_range(0.55, 0.85))
+				dalam.flip_h = acak.randf() < 0.5
+				# Lebih redup daripada bongkahan bibir supaya bagian dalam tebing
+				# tetap mundur -- tapi tetap harus TERLIHAT. Versi sebelumnya
+				# hampir sewarna isian tebingnya sendiri, jadi sia-sia digambar.
+				dalam.modulate = Color(0.44, 0.41, 0.31, acak.randf_range(0.75, 1.0))
 				_air.add_child(dalam)
 
 

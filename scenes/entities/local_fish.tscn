@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/local_fish.gd" id="1_local"]
 [ext_resource type="Texture2D" path="res://kenney_fish-pack_2/PNG/Double/fish_blue.png" id="2_tex"]
+[ext_resource type="Script" path="res://scripts/sprite_ikan.gd" id="sp_ikan"]
 
 [sub_resource type="CircleShape2D" id="Circle_local"]
 radius = 26.0
@@ -11,9 +12,10 @@ collision_layer = 8
 collision_mask = 1
 script = ExtResource("1_local")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
-scale = Vector2(0.42, 0.42)
-texture = ExtResource("2_tex")
+[node name="Sprite2D" type="AnimatedSprite2D" parent="."]
+scale = Vector2(0.115, 0.115)
+script = ExtResource("sp_ikan")
+spesies = "seluang"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("Circle_local")

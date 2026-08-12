@@ -67,7 +67,10 @@ var _wobble: float = 0.0
 ## yang pernah termakan berubah spesies.
 var _base_tint: Color = Color.WHITE
 
-@onready var _sprite: Sprite2D = $Sprite2D
+## Ikan asli sungai Indonesia yang bisa muncul sebagai penghuni.
+const SPESIES_LOKAL := ["seluang", "nilem", "kancra", "gabus", "baung"]
+
+@onready var _sprite: SpriteIkan = $Sprite2D
 @onready var _puff: CPUParticles2D = $Puff
 
 
@@ -76,6 +79,9 @@ func _ready() -> void:
 	_wobble = randf() * TAU
 	if not species_tints.is_empty():
 		_base_tint = species_tints[randi() % species_tints.size()]
+	# Spesies diundi tiap kali seekor lahir. Sungai yang penghuninya seragam
+	# terbaca sebagai satu jenis ikan yang digandakan, bukan sebagai ekosistem.
+	_sprite.ganti_spesies(SPESIES_LOKAL[randi() % SPESIES_LOKAL.size()])
 	_sprite.modulate = _base_tint
 	_sprite.scale *= randf_range(size_variation.x, size_variation.y)
 	_target = global_position
@@ -224,7 +230,7 @@ func _face_travel(delta: float) -> void:
 		return
 	# Sprite ikan Kenney menghadap ke KANAN secara bawaan.
 	if absf(_velocity.x) > 6.0:
-		_sprite.flip_h = _velocity.x < 0.0
+		_sprite.hadap(_velocity.x < 0.0)
 	var tilt := clampf(_velocity.y / maxf(swim_speed, 1.0), -1.0, 1.0) * deg_to_rad(16.0)
 	if _sprite.flip_h:
 		tilt = -tilt

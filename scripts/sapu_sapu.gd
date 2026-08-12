@@ -56,6 +56,7 @@ var _player: Node2D = null
 var _dying: bool = false
 
 @onready var _visual: Node2D = $Visual
+@onready var _sprite: SpriteIkan = $Visual/Sprite
 @onready var _burst: CPUParticles2D = $Burst
 @onready var _health_pips: Node2D = $Visual/HealthPips
 
@@ -101,7 +102,10 @@ func _drift(delta: float) -> void:
 	)
 
 	if _player != null and absf(_player.global_position.x - global_position.x) > 20.0:
-		_visual.scale.x = 1.0 if _player.global_position.x > global_position.x else -1.0
+		# Menghadap pemain lewat animasi kiri/kanan, BUKAN dengan membalik node
+		# Visual. Membalik Visual ikut membalik penanda nyawanya juga -- dan
+		# penanda nyawa yang tercermin membingungkan, karena urutannya berubah.
+		_sprite.hadap(_player.global_position.x < global_position.x)
 
 
 func _pick_anchor() -> Vector2:
@@ -176,7 +180,7 @@ func _be_cleared() -> void:
 	cleared.emit()
 
 	var tween := create_tween().set_parallel()
-	tween.tween_property(_visual, "scale", Vector2(_visual.scale.x * 0.1, 0.1), 0.2).set_ease(Tween.EASE_IN)
+	tween.tween_property(_visual, "scale", Vector2(0.1, 0.1), 0.2).set_ease(Tween.EASE_IN)
 	tween.tween_property(_visual, "modulate:a", 0.0, 0.2)
 	# Tunggu percikannya habis dulu baru node dibuang.
 	tween.chain().tween_interval(_burst.lifetime)
