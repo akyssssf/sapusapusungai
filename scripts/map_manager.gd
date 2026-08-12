@@ -56,6 +56,13 @@ enum Phase { MEMBURU, MEMBERSIHKAN, BOS, MENANG, KALAH, BANJIR, TERKUNCI }
 ## Node opsional pengawas ekosistem. Hanya Map 2 yang mengisinya.
 @export var ecosystem_path: NodePath
 
+@export_group("Kamera")
+## Zoom saat ikan masih kecil dan saat sudah maksimum. Diatur per peta, bukan di
+## game_camera.gd, karena tiap sungai punya kepadatan sendiri: Ciliwung yang
+## lebih ramai justru butuh pandangan lebih dekat supaya isinya terbaca.
+@export var zoom_dekat: float = 1.3
+@export var zoom_jauh: float = 1.05
+
 @export_group("Kemenangan")
 ## Lama pertunjukan air membersih sebelum panel MISI SELESAI muncul.
 ## Sedikit lebih panjang daripada animasi airnya sendiri (2,6 dtk) supaya ada
@@ -136,6 +143,10 @@ func _progress_gate_passed() -> bool:
 
 
 func _setup_camera() -> void:
+	_camera.zoom_at_level_1 = zoom_dekat
+	_camera.zoom_at_max_level = zoom_jauh
+	_camera.set_size_progress(0.0)
+
 	# Batas kamera dipatok ke SELURUH peta (termasuk dasar sungai) supaya
 	# pemandangan lumpur dan tanamannya tetap kelihatan, walaupun ikan sendiri
 	# tidak boleh berenang sampai ke sana.

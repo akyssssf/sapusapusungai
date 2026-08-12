@@ -13,7 +13,12 @@ extends Camera2D
 ## Ruang kosong di sekeliling ikan terjauh, dalam piksel.
 @export var frame_padding: float = 260.0
 ## Zoom terdekat dan terjauh. Di bawah 1.0 berarti pandangan makin luas.
-@export var zoom_range: Vector2 = Vector2(1.5, 0.75)
+## Batas dekat sengaja jauh lebih rendah daripada Bab 1-2, dan itu bukan
+## kelalaian: Sokoban menuntut pemain melihat TATA LETAK papannya. Zoom 1,85
+## sempat dicoba dan hasilnya cuma memperlihatkan lima petak -- balok yang mau
+## didorong berikutnya sudah di luar layar, jadi puzzle-nya tidak bisa
+## direncanakan sama sekali.
+@export var zoom_range: Vector2 = Vector2(1.2, 0.85)
 @export var follow_speed: float = 4.5
 @export var zoom_speed: float = 2.6
 @export var shake_decay: float = 42.0
