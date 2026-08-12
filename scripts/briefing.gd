@@ -42,8 +42,20 @@ func _ready() -> void:
 	_judul.text = String(data.get("judul", "PAPAN INSTRUKSI"))
 	_tujuan.text = String(data.get("tujuan", ""))
 
+	# Kontrol digambar sebagai TUTS, bukan ditulis sebagai kalimat. Letak tombol
+	# adalah pengetahuan spasial, dan menuliskannya memaksa pemain
+	# menerjemahkannya balik jadi gambar di kepalanya.
 	for baris in data.get("kontrol", []):
-		_tambah_kontrol(String(baris[0]), String(baris[1]))
+		_kolom_kontrol.add_child(BriefingVisual.baris_tuts(baris[0], String(baris[1])))
+
+	# Satu gambar besar menggantikan aturan yang paling tidak cocok jadi
+	# kalimat: perbandingan ukuran di Bab 1-2, denah lorong di Bab 3.
+	var gambar: Control = null
+	if bab == 3:
+		gambar = BriefingVisual.denah_papan()
+	else:
+		gambar = BriefingVisual.tangga_ukuran()
+	%KotakGambar.add_child(gambar)
 	for baris in data.get("bahaya", []):
 		_tambah_butir(_kolom_bahaya, String(baris), WARNA_BAHAYA)
 	for baris in data.get("cara", []):

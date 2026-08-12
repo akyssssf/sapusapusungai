@@ -13,6 +13,7 @@ const SASARAN := [
 	["res://scenes/maps/map1_brantas.tscn", "user://bab1.png", 9.0, 4],
 	["res://scenes/maps/map2_ciliwung.tscn", "user://bab2.png", 8.0],
 	["res://scenes/ui/main_menu.tscn", "user://menu.png", 1.5],
+	["res://scenes/ui/briefing.tscn", "user://papan.png", 1.2],
 ]
 
 func _ready() -> void:
@@ -20,6 +21,11 @@ func _ready() -> void:
 	await get_tree().process_frame
 
 	for s in SASARAN:
+		# Papan instruksi biasanya dibuka lewat rantai bab, yang mengisi nomor
+		# babnya. Kalau diambil sendirian, nomornya harus diisi dulu -- tanpa itu
+		# papannya tampil kosong.
+		if String(s[0]).contains("briefing"):
+			SceneRouter.briefing_chapter = 1
 		var scene: Node = load(s[0]).instantiate()
 		add_child(scene)
 		# Beberapa gambar sengaja diambil saat ikan sudah besar, supaya

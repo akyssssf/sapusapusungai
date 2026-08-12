@@ -87,7 +87,7 @@ enum ControlScheme {
 ## mulutnya nyaris tidak menyentuh apa pun. Sejak itu ukuran dan gambar dipisah:
 ## skala gambar punya angkanya sendiri di bawah.
 @export var scale_at_level_1: float = 0.45
-@export var scale_at_max_level: float = 1.05
+@export var scale_at_max_level: float = 1.25
 ## Pengali khusus GAMBAR, untuk menyesuaikan ukuran berkas sumbernya saja.
 ## Aset ikan 512 px; 0,25 mengembalikannya ke ukuran layar yang sama seperti
 ## saat masih memakai sprite 128 px.
@@ -120,6 +120,10 @@ var swim_bounds: Rect2 = Rect2()
 var _scale_tween: Tween
 var _has_custom_actions: bool = false
 var _wiggle_time: float = 0.0
+## Sisa waktu dorongan tenaga dari gelembung oksigen.
+var _dorongan_sisa: float = 0.0
+## Seberapa cepat ikan berenang saat terdorong.
+@export var dorongan_kecepatan: float = 1.35
 var _invulnerable_left: float = 0.0
 var _control_locked: bool = false
 var _dash_left: float = 0.0
@@ -139,6 +143,12 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	var direction := _read_input()
+
+	if _dorongan_sisa > 0.0:
+		_dorongan_sisa = maxf(_dorongan_sisa - delta, 0.0)
+		# Gelembung sisa waktu dorongan ditandai lewat semburat biru pada ikan.
+		# Buff yang tidak kelihatan sama saja dengan buff yang tidak ada.
+		_sprite.modulate = Color(0.78, 1.12, 1.35) if _dorongan_sisa > 0.0 else Color.WHITE
 
 	_tick_dash(delta)
 	if _dash_pressed():
@@ -221,7 +231,7 @@ func _try_dash(direction: Vector2) -> void:
 
 	_dash_direction = dir.normalized()
 	_dash_left = dash_duration
-	_dash_cooldown_left = dash_cooldown
+	_dash_cooldown_left = dash_cooldown * (0.45 if _dorongan_sisa > 0.0 else 1.0)
 	_dash_trail.emitting = true
 
 	if dash_grants_invulnerability:
@@ -267,7 +277,8 @@ func size_speed_multiplier() -> float:
 
 
 func current_max_speed() -> float:
-	return max_speed * size_speed_multiplier()
+	var laju := max_speed * size_speed_multiplier()
+	return laju * dorongan_kecepatan if _dorongan_sisa > 0.0 else laju
 
 
 func current_acceleration() -> float:
@@ -340,6 +351,33 @@ func _wiggle_body(delta: float) -> void:
 ## bergerak saat menggigit terlihat seperti animasi yang rusak.
 func makan() -> void:
 	_sprite.makan()
+
+
+## Memulihkan nyawa. Dipanggil gelembung oksigen.
+func pulihkan(jumlah: int) -> void:
+	if health >= max_health:
+		return
+	health = mini(health + jumlah, max_health)
+	health_changed.emit(health, max_health)
+	# Kilatan hijau, bukan merah. Warna kerusakan dan warna pemulihan tidak
+	# boleh sama, kalau tidak pemain harus membaca hatinya untuk tahu barusan
+	# untung atau rugi.
+	var tween := create_tween()
+	tween.tween_property(_sprite, "modulate", Color(0.55, 1.5, 0.75), 0.06)
+	tween.tween_property(_sprite, "modulate", Color.WHITE, 0.3)
+
+
+## Dorongan tenaga sesaat: berenang lebih cepat dan dash lebih sering.
+## Dipakai gelembung oksigen saat nyawa pemain sudah penuh.
+func beri_dorongan(lama: float) -> void:
+	_dorongan_sisa = maxf(_dorongan_sisa, lama)
+	var tween := create_tween()
+	tween.tween_property(_sprite, "modulate", Color(0.7, 1.2, 1.6), 0.06)
+	tween.tween_property(_sprite, "modulate", Color.WHITE, 0.3)
+
+
+func sedang_terdorong() -> bool:
+	return _dorongan_sisa > 0.0
 
 
 func add_growth(amount: float) -> void:

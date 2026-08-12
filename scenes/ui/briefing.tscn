@@ -83,7 +83,7 @@ anchor_bottom = 1.0
 offset_left = 90.0
 offset_top = 190.0
 offset_right = -90.0
-offset_bottom = -108.0
+offset_bottom = -282.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 34
@@ -144,6 +144,20 @@ horizontal_scroll_mode = 0
 unique_name_in_owner = true
 size_flags_horizontal = 3
 theme_override_constants/separation = 14
+
+[node name="KotakGambar" type="CenterContainer" parent="."]
+unique_name_in_owner = true
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 90.0
+offset_top = -268.0
+offset_right = -90.0
+offset_bottom = -96.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
 
 [node name="TombolLanjut" type="Button" parent="."]
 unique_name_in_owner = true

@@ -14,6 +14,10 @@ dan satu kesimpulan yang cuma bisa didapat dengan memainkan ketiganya.
 
 ![Bab 3 — Kali Jeroan](docs/bab3.png)
 
+Papan instruksi tiap bab — aturan ukuran ditunjukkan, bukan dijelaskan:
+
+![Papan instruksi](docs/papan.png)
+
 ---
 
 ## Tiga bab, tiga jenis permainan
@@ -64,6 +68,10 @@ hilang.
 - **Lima babak cerita**: pembuka, dua jembatan antar bab, ending banjir, dan penutup
 - **Papan instruksi tiap bab**: tujuan, kontrol, apa yang berbahaya, cara mengatasinya
 - **Layar MISI SELESAI** dengan bintang, skor berhitung naik, rekor, dan bab yang terbuka
+- **Gelembung oksigen** memulihkan satu nyawa — atau memberi dorongan tenaga kalau
+  nyawamu sudah penuh, jadi tidak pernah terasa sia-sia
+- **Papan instruksi bergambar**: tuts keyboard digambar sebagai tombol, dan aturan ukuran
+  ditunjukkan sebagai perbandingan ikan lawan sampah
 - **Jenis sampah terbuka bertahap** — tiap kali ikan naik satu ukuran, satu jenis sampah
   baru mulai muncul di sungai
 - **Progres tersimpan** ke `user://sapusapusungai.cfg` — format ConfigFile, bisa dibuka

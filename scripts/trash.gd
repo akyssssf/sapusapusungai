@@ -33,21 +33,28 @@ enum Tier { KECIL, SEDANG, BESAR }
 ## RADIUSNYA SENGAJA DIBUAT JAUH BERBEDA, dan itu satu-satunya cara pemain tahu
 ## mana yang bisa dimakan. Aturan Feeding Frenzy cuma satu: kalau bendanya lebih
 ## kecil dari mulutmu, telan. Jadi ukuran bukan hiasan -- ukuran ADALAH
-## antarmukanya. Dulu ketiganya cuma 15/26/40 dan mirip semua di layar, sehingga
-## pemain terpaksa membaca cincin merah yang ditempel di atasnya.
+## antarmukanya.
 ##
-## Sekarang 14/30/48, dan angkanya dipatok ke ikan pemain, bukan dipilih
-## sembarangan:
-##   ikan level 1, garis tengah  45 px  ->  cuma melewati sampah kecil (28 px)
-##   ikan level 3, garis tengah  75 px  ->  sudah melewati sampah sedang (60 px)
-##   ikan level 5, garis tengah 105 px  ->  akhirnya melewati sampah besar (96 px)
+## Tangganya 22 / 48 / 88 piksel garis tengah -- tiap tingkat kira-kira DUA KALI
+## tingkat sebelumnya. Versi sebelumnya 28/60/96 masih terlalu rapat, dan yang
+## paling terasa: tingkat terbesar hampir sebesar ikannya sendiri, sehingga
+## "aku lebih besar dari itu" jadi tebakan alih-alih penilaian.
+##
+## Angkanya dipatok ke ikan pemain, bukan dipilih sembarangan:
+##   ikan level 1, garis tengah  45 px  ->  sampah kecil (22) muat, dua kali lipat lebih kecil
+##   ikan level 2, garis tengah  64 px  ->  sampah sedang (48) muat
+##   ikan level 3, garis tengah  82 px  ->  sampah besar (88) masih terlalu besar
+##   ikan level 4, garis tengah 101 px  ->  SEMUANYA muat
+##   ikan level 5, garis tengah 120 px  ->  babak penghabisan
+##
 ## Jadi "aku sudah lebih besar dari benda itu" selalu benar secara harfiah, dan
-## bisa dinilai pemain hanya dengan melihat.
+## di level 4 tidak ada lagi yang terlarang -- level 5 murni babak menyapu sisa.
 const TIER_DATA := [
-	{"butuh_level": 1, "skor": 10, "tumbuh": 20.0, "radius": 14.0},
-	{"butuh_level": 3, "skor": 30, "tumbuh": 45.0, "radius": 30.0},
-	{"butuh_level": 5, "skor": 70, "tumbuh": 90.0, "radius": 48.0},
+	{"butuh_level": 1, "skor": 10, "tumbuh": 20.0, "radius": 11.0},
+	{"butuh_level": 2, "skor": 30, "tumbuh": 42.0, "radius": 24.0},
+	{"butuh_level": 4, "skor": 70, "tumbuh": 85.0, "radius": 44.0},
 ]
+
 
 @export var tier: Tier = Tier.KECIL
 

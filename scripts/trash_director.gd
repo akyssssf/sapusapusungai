@@ -31,6 +31,10 @@ const TrashScript := preload("res://scripts/trash.gd")
 enum Beat { GEROMBOLAN, BAMBU, PAGAR, DERAS }
 
 @export var trash_scene: PackedScene
+## Gelembung oksigen. Kosong berarti peta ini tidak memakainya.
+@export var gelembung_scene: PackedScene
+## Jarak waktu antar gelembung, dalam detik. Sengaja lebar dan lama.
+@export var gelembung_jeda: Vector2 = Vector2(16.0, 26.0)
 ## Jumlah sampah yang diusahakan selalu ada.
 @export var target_count: int = 30
 ## Jarak dari tepi atas/bawah air yang tidak dipakai untuk memunculkan sampah.
@@ -82,6 +86,8 @@ var active: bool = true
 
 var _water: Rect2 = Rect2()
 var _player: Node = null
+## Sisa waktu sampai gelembung oksigen berikutnya ditebar.
+var _gelembung_sisa: float = 0.0
 var _topup_cooldown: float = 0.0
 var _beat_cooldown: float = 0.0
 var _elapsed: float = 0.0
@@ -128,6 +134,7 @@ func _process(delta: float) -> void:
 		return
 
 	_elapsed += delta
+	_tebar_gelembung(delta)
 	_tick_surge(delta)
 	_tick_pending_rush(delta)
 
@@ -189,16 +196,16 @@ func _tier_weights() -> Array:
 	# sekadar dinaikkan seiring level. Keluhan yang mendasarinya: di ukuran 4
 	# layar penuh sampah besar yang belum bisa disentuh, jadi sungai terasa
 	# seperti ladang ranjau -- padahal cuma satu tingkat yang masih terlarang.
-	if level <= 2:
+	if level <= 1:
 		# Cuma sampah kecil yang bisa dimakan. Porsi yang lain ditekan, kalau
 		# tidak pemain baru menghabiskan menit pertamanya cuma menghindar.
-		return [74, 22, 4]
-	if level <= 4:
-		# Kecil dan sedang sudah bisa dimakan: dua dari tiga tingkat aman, dan
-		# perbandingannya harus terasa begitu juga.
-		return [44, 42, 14]
-	# Semuanya bisa dimakan; sekarang porsinya boleh merata.
-	return [34, 33, 33]
+		return [78, 18, 4]
+	if level <= 3:
+		# Kecil dan sedang sudah bisa dimakan: dua dari tiga tingkat aman.
+		return [42, 44, 14]
+	# Level 4 ke atas semuanya bisa dimakan; porsinya boleh merata, dan yang
+	# besar justru diperbanyak karena itu yang paling bernilai untuk disapu.
+	return [28, 34, 38]
 
 
 func _random_tier() -> int:
@@ -430,6 +437,29 @@ func _clamp_to_water(point: Vector2) -> Vector2:
 
 
 ## fixed_drift di atas 0 mengunci kecepatan hanyut, dipakai pagar sampah.
+## Gelembung oksigen ditebar berkala, TIDAK ikut menghitung sampah.
+##
+## Sengaja jarang dan tidak tergantung tekanan permainan: kalau frekuensinya
+## naik saat pemain kesulitan, gelembungnya berubah jadi jaring pengaman
+## otomatis, dan kehilangan nyawa berhenti terasa mahal. Yang diinginkan cuma
+## satu -- kesalahan awal tidak boleh menghantui sampai akhir bab.
+func _tebar_gelembung(delta: float) -> void:
+	if gelembung_scene == null or _player == null:
+		return
+	_gelembung_sisa -= delta
+	if _gelembung_sisa > 0.0:
+		return
+	_gelembung_sisa = randf_range(gelembung_jeda.x, gelembung_jeda.y)
+
+	# Cuma muncul kalau memang ada gunanya, atau sesekali sebagai hadiah tenaga.
+	if _player.health >= _player.max_health and randf() > 0.35:
+		return
+
+	var gelembung: Node2D = gelembung_scene.instantiate()
+	gelembung.position = _free_point_away_from_player()
+	add_child(gelembung)
+
+
 func _spawn(tier: int, point: Vector2, fixed_drift: float = -1.0) -> Node2D:
 	var trash: Node2D = trash_scene.instantiate()
 	# Semuanya diatur SEBELUM add_child(), karena _ready() milik sampah sudah

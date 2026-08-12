@@ -1,0 +1,39 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/oxygen_bubble.gd" id="1_gel"]
+[ext_resource type="Texture2D" path="res://kenney_fish-pack_2/PNG/Double/bubble_a.png" id="2_bub"]
+
+[sub_resource type="CircleShape2D" id="Circle_gel"]
+radius = 30.0
+
+[node name="OxygenBubble" type="Area2D"]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_gel")
+
+[node name="Kilau" type="Line2D" parent="."]
+points = PackedVector2Array(34, 0, 24, 24, 0, 34, -24, 24, -34, 0, -24, -24, 0, -34, 24, -24, 34, 0)
+width = 3.0
+default_color = Color(0.6, 0.95, 1, 0.5)
+
+[node name="Gambar" type="Sprite2D" parent="."]
+scale = Vector2(0.45, 0.45)
+modulate = Color(0.75, 0.98, 1, 0.95)
+texture = ExtResource("2_bub")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("Circle_gel")
+
+[node name="Percik" type="CPUParticles2D" parent="."]
+emitting = false
+amount = 16
+lifetime = 0.7
+one_shot = true
+explosiveness = 0.9
+spread = 180.0
+gravity = Vector2(0, -60)
+initial_velocity_min = 60.0
+initial_velocity_max = 180.0
+scale_amount_min = 1.5
+scale_amount_max = 3.5
+color = Color(0.7, 0.96, 1, 0.8)

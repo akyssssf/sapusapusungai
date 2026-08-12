@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=19 format=3]
 
 [ext_resource type="Script" path="res://scripts/map_manager.gd" id="1_map"]
 [ext_resource type="PackedScene" path="res://scenes/entities/player_fish.tscn" id="2_player"]
@@ -18,6 +18,7 @@
 [ext_resource type="PackedScene" path="res://scenes/entities/boss_sapu.tscn" id="16_boss"]
 [ext_resource type="PackedScene" path="res://scenes/entities/rush_hazard.tscn" id="17_rush"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="18_pause"]
+[ext_resource type="PackedScene" path="res://scenes/entities/oxygen_bubble.tscn" id="gel_1"]
 
 [node name="Map1Brantas" type="Node2D"]
 script = ExtResource("1_map")
@@ -317,6 +318,7 @@ polygon = PackedVector2Array(1290, -40, 1395, -40, 1600, 780, 1495, 780)
 [node name="TrashDirector" type="Node2D" parent="."]
 script = ExtResource("15_director")
 trash_scene = ExtResource("3_trash")
+gelembung_scene = ExtResource("gel_1")
 rush_scene = ExtResource("17_rush")
 
 [node name="PlayerFish" parent="." instance=ExtResource("2_player")]
