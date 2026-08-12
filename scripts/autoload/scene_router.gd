@@ -16,11 +16,22 @@ extends CanvasLayer
 
 const MENU_PATH := "res://scenes/ui/main_menu.tscn"
 const CHAPTER_SELECT_PATH := "res://scenes/ui/chapter_select.tscn"
+const CUTSCENE_PATH := "res://scenes/ui/cutscene.tscn"
+const BRIEFING_PATH := "res://scenes/ui/briefing.tscn"
 
 @export var fade_time: float = 0.3
 
+## Diisi tepat sebelum cutscene dibuka; cutscene membacanya saat _ready().
+## Lewat autoload, bukan lewat parameter, karena change_scene_to_file() tidak
+## punya cara mengoper argumen ke scene berikutnya.
+var cutscene_id: String = ""
+var cutscene_next: String = ""
+var briefing_chapter: int = 0
+
 var _veil: ColorRect
 var _busy: bool = false
+## Bab yang sedang dituju lewat rantai "cerita -> papan instruksi -> peta".
+var _rantai_bab: int = 0
 
 
 func _ready() -> void:
@@ -71,8 +82,49 @@ func go_to_chapter_select() -> void:
 	go_to(CHAPTER_SELECT_PATH)
 
 
+## Masuk ke sebuah bab lewat rantai: cerita -> papan instruksi -> peta.
+##
+## Rantainya sengaja TIDAK dirakit di sini sebagai daftar alamat scene, melainkan
+## dihitung ulang tiap langkah oleh lanjutkan_rantai(). Bedanya penting: cutscene
+## menandai dirinya "sudah ditonton" saat selesai, jadi begitu rantai dihitung
+## ulang, langkah itu hilang dengan sendirinya. Kalau rantainya dirakit di depan
+## sebagai daftar, tiap langkah harus tahu siapa penerusnya -- dan menambah
+## langkah baru berarti menyunting semua yang sudah ada.
 func go_to_chapter(index: int) -> void:
+	_rantai_bab = index
+	lanjutkan_rantai()
+
+
+## Dipanggil cutscene dan papan instruksi saat selesai.
+func lanjutkan_rantai() -> void:
+	if _rantai_bab <= 0:
+		go_to_menu()
+		return
+
+	var index := _rantai_bab
+	var id := Story.intro_untuk_bab(index)
+	if not id.is_empty() and not GameState.has_seen_story(id):
+		cutscene_id = id
+		cutscene_next = ""
+		go_to(CUTSCENE_PATH)
+		return
+
+	if not GameState.has_seen_story(Story.kunci_briefing(index)):
+		briefing_chapter = index
+		go_to(BRIEFING_PATH)
+		return
+
+	_rantai_bab = 0
 	go_to(GameState.chapter_path(index))
+
+
+## Cutscene yang berdiri sendiri, di luar rantai bab -- dipakai penutup cerita
+## setelah Bab 3. Selesai menonton, pemain kembali ke menu.
+func play_cutscene(id: String, next_path: String = "") -> void:
+	_rantai_bab = 0
+	cutscene_id = id
+	cutscene_next = next_path
+	go_to(CUTSCENE_PATH)
 
 
 ## Mengulang bab yang sedang dimainkan. Memakai alamat yang dicatat GameState,

@@ -23,6 +23,18 @@ extends StaticBody2D
 ##                          terdengar makin cepat
 ##   - selesai            : terdorong keluar jalur air lalu pecah
 
+## Aturan kedua Map 3, dan satu-satunya yang bikin bab ini jadi puzzle:
+##
+##     Air yang dilepas dari HULU akan ditahan sumbatan berikutnya di hilir.
+##     Air yang dilepas dari HILIR tidak ditahan apa pun -- seluruh kolam yang
+##     tertahan di belakangnya menghambur sekaligus.
+##
+## Jadi urutannya berpengaruh, dan urutan yang benar justru melawan insting:
+## ikan lahir di hilir, tapi pekerjaannya harus dimulai dari hulu.
+##
+## Supaya ini jadi TEKA-TEKI dan bukan JEBAKAN, akibatnya harus bisa dibaca
+## sebelum pemain bertindak -- itu tugas penanda AMAN/DERAS di bawah.
+
 signal cleared
 
 @export_group("Syarat dorong")
@@ -47,6 +59,14 @@ signal cleared
 @export var color_partial: Color = Color(0.98, 0.76, 0.29)
 @export var color_ready: Color = Color(0.35, 0.87, 0.98)
 
+@export_group("Penanda ramalan")
+@export var warna_aman: Color = Color(0.55, 0.85, 0.72)
+@export var warna_deras: Color = Color(1.0, 0.55, 0.36)
+
+## Diisi wasit tiap kali ada sumbatan yang terbuka: true berarti TIDAK ADA LAGI
+## sumbatan di hilir yang akan menahan airnya.
+var akan_deras: bool = false
+
 var _fish: Array[Node2D] = []
 var _charge: float = 0.0
 var _near_count: int = 0
@@ -62,6 +82,9 @@ var _pulse: float = 0.0
 @onready var _burst: CPUParticles2D = $Burst
 @onready var _shape: CollisionShape2D = $CollisionShape2D
 
+var _label: Label = null
+var _panah: Line2D = null
+
 
 ## Dipanggil map3_manager: sumbatan perlu tahu ikan mana saja yang dihitung.
 func setup(fish: Array[Node2D]) -> void:
@@ -74,6 +97,63 @@ func _ready() -> void:
 	_link_a.visible = false
 	_link_b.visible = false
 	_outline.default_color = color_idle
+	_bangun_penanda()
+
+
+## Penanda dibuat di kode, bukan disusun di scene, karena sumbatan ini di-instance
+## berkali-kali dan penandanya harus identik di semuanya. Node yang disalin lewat
+## editor cepat atau lambat akan berbeda satu sama lain -- biasanya baru ketahuan
+## setelah salah satunya lupa diperbarui.
+func _bangun_penanda() -> void:
+	_label = Label.new()
+	_label.size = Vector2(300.0, 34.0)
+	_label.position = Vector2(-150.0, -196.0)
+	_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_label.add_theme_font_size_override("font_size", 20)
+	_label.add_theme_color_override("font_outline_color", Color(0.02, 0.05, 0.07, 0.95))
+	_label.add_theme_constant_override("outline_size", 9)
+	add_child(_label)
+
+	# Panah menunjuk ke HILIR (kiri), arah air akan lari kalau sumbatan ini
+	# dibuka. Panah hanya muncul pada keadaan DERAS: penanda yang selalu tampil
+	# di semua sumbatan tidak membedakan apa pun, dan yang tidak membedakan
+	# apa-apa akan berhenti dibaca.
+	_panah = Line2D.new()
+	_panah.width = 6.0
+	_panah.points = PackedVector2Array([
+		Vector2(60.0, -160.0), Vector2(-60.0, -160.0),
+		Vector2(-34.0, -178.0), Vector2(-60.0, -160.0), Vector2(-34.0, -142.0),
+	])
+	_panah.visible = false
+	add_child(_panah)
+	_segarkan_penanda()
+
+
+## Dipanggil wasit tiap kali peta berubah keadaan.
+func set_akan_deras(nilai: bool) -> void:
+	if akan_deras == nilai:
+		return
+	akan_deras = nilai
+	_segarkan_penanda()
+
+
+func _segarkan_penanda() -> void:
+	if _label == null:
+		return
+	if _done:
+		_label.visible = false
+		_panah.visible = false
+		return
+	_label.visible = true
+	if akan_deras:
+		_label.text = "AWAS  -  DERAS"
+		_label.add_theme_color_override("font_color", warna_deras)
+		_panah.default_color = warna_deras
+		_panah.visible = true
+	else:
+		_label.text = "AMAN"
+		_label.add_theme_color_override("font_color", warna_aman)
+		_panah.visible = false
 
 
 func _physics_process(delta: float) -> void:
@@ -99,6 +179,17 @@ func _physics_process(delta: float) -> void:
 
 func ratio() -> float:
 	return clampf(_charge / maxf(hold_time, 0.01), 0.0, 1.0)
+
+
+## Sudah terdorong lepas. Dipakai wasit untuk tahu siapa yang masih menahan air.
+##
+## Diperlukan terpisah dari is_queued_for_deletion() karena sumbatan hidup
+## sekitar satu detik lagi setelah terbuka -- selama tween terdorong dan
+## pecahnya berjalan. Selama sedetik itu dia sudah TIDAK menahan apa pun, dan
+## kalau wasit masih menghitungnya, ramalan AMAN/DERAS akan salah persis di
+## detik pemain paling memperhatikannya.
+func akan_pecah() -> bool:
+	return _done
 
 
 # --- Umpan balik ------------------------------------------------------------
@@ -188,6 +279,7 @@ func _break_apart() -> void:
 	_ring.visible = false
 	_link_a.visible = false
 	_link_b.visible = false
+	_segarkan_penanda()
 	_burst.emitting = true
 	AudioManager.play("bamboo_break", 2.0, 1.0, 0.03)
 

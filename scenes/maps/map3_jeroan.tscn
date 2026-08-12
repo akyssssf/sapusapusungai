@@ -64,30 +64,30 @@ polygon = PackedVector2Array(0, 900, 1600, 900, 1600, 808.7, 1560, 801.5, 1520, 
 
 [node name="Obstacles" type="Node2D" parent="."]
 
-[node name="Sumbatan1" parent="Obstacles" instance=ExtResource("3_bam")]
-position = Vector2(600, 430)
+[node name="SumbatanHilir" parent="Obstacles" instance=ExtResource("3_bam")]
+position = Vector2(520, 430)
 push_radius = 200.0
-hold_time = 1.4
+hold_time = 1.6
 
-[node name="Sumbatan2" parent="Obstacles" instance=ExtResource("3_bam")]
-position = Vector2(1030, 310)
+[node name="SumbatanTengah" parent="Obstacles" instance=ExtResource("3_bam")]
+position = Vector2(960, 370)
 push_radius = 200.0
-hold_time = 1.9
+hold_time = 2.0
 
-[node name="Sumbatan3" parent="Obstacles" instance=ExtResource("3_bam")]
-position = Vector2(1380, 580)
+[node name="SumbatanHulu" parent="Obstacles" instance=ExtResource("3_bam")]
+position = Vector2(1340, 570)
 push_radius = 200.0
 hold_time = 2.4
 
 [node name="FishA" parent="." instance=ExtResource("2_fish")]
 position = Vector2(240, 380)
-idle_current_drift = 13.0
+idle_current_drift = 8.0
 display_name = "Wader A"
 marker_color = Color(0.42, 0.94, 0.62, 1)
 
 [node name="FishB" parent="." instance=ExtResource("2_fish")]
 position = Vector2(240, 540)
-idle_current_drift = 13.0
+idle_current_drift = 8.0
 display_name = "Wader B"
 marker_color = Color(1, 0.702, 0.322, 1)
 

@@ -231,12 +231,15 @@ func _enter_phase(next_phase: int) -> void:
 			_restart_lock = 1.0
 			_player.freeze()
 			_pause.enabled = false
-			GameState.record_score(map_index, GameState.score)
+			# Urutannya penting: rekor diperiksa SEBELUM babnya ditandai tamat,
+			# karena record_score() yang menyimpan angka barulah yang tahu angka
+			# lamanya. Dibalik, lencana "REKOR BARU" tidak akan pernah muncul.
+			var rekor_baru := GameState.record_score(map_index, GameState.score)
 			GameState.mark_map_completed(map_index)
 			AudioManager.play("win", 2.0, 1.0, 0.0)
 			AudioManager.play_music(music if music != null else AudioManager.MUSIC_RIVER, 2.0)
 			_hud.hide_boss_bar()
-			_hud.show_result(win_title, _win_hint())
+			_tampilkan_misi_selesai(rekor_baru)
 		Phase.KALAH:
 			_restart_lock = 1.0
 			_player.freeze()
@@ -262,10 +265,23 @@ func _enter_phase(next_phase: int) -> void:
 				SceneRouter.go_to("res://scenes/ui/game_over.tscn")
 
 
+const MISI_SELESAI_SCENE := preload("res://scenes/ui/mission_complete.tscn")
+
+
+## Layar MISI SELESAI dipasang sebagai tempelan di atas peta, bukan lewat pindah
+## scene. Sungai yang baru saja dibersihkan tetap kelihatan di belakangnya --
+## itu bukti hasil kerja pemain, dan menggantinya dengan latar polos berarti
+## membuang hadiah yang paling dia hasilkan sendiri.
+func _tampilkan_misi_selesai(rekor_baru: bool) -> void:
+	var layar: CanvasLayer = MISI_SELESAI_SCENE.instantiate()
+	add_child(layar)
+	layar.tampilkan(map_index, GameState.score, rekor_baru, GameState.last_perfect, _win_hint())
+
+
 func _win_hint() -> String:
 	if next_map_path.is_empty():
-		return "Skor %d  -  tekan Enter untuk pilih bab" % GameState.score
-	return "Skor %d  -  Enter lanjut ke %s  -  Esc pilih bab" % [GameState.score, next_map_label]
+		return "Enter  pilih bab"
+	return "Enter  lanjut ke %s          Esc  pilih bab" % next_map_label
 
 
 func _on_surge_started(duration: float) -> void:

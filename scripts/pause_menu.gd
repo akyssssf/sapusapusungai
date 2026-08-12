@@ -20,21 +20,57 @@ extends CanvasLayer
 ## permainan yang sebenarnya sudah selesai, dengan ikan yang sudah dibekukan.
 var enabled: bool = true
 
+const BRIEFING_SCENE := preload("res://scenes/ui/briefing.tscn")
+
 @onready var _panel: Control = %Panel
 @onready var _title: Label = %Title
+
+## Papan instruksi yang sedang menempel di atas menu jeda, kalau ada.
+var _papan: Control = null
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_panel.visible = false
 	%ResumeButton.pressed.connect(close)
+	%BriefingButton.pressed.connect(_buka_papan)
 	%RestartButton.pressed.connect(SceneRouter.restart_chapter)
 	%ChapterButton.pressed.connect(SceneRouter.go_to_chapter_select)
 	%MenuButton.pressed.connect(SceneRouter.go_to_menu)
 
 
+## Papan instruksi dibuka sebagai TEMPELAN, bukan lewat pindah scene.
+##
+## Ini bukan pilihan gaya. Berpindah scene di tengah permainan berarti peta yang
+## sedang dimainkan dibuang -- sampahnya, posisi ikannya, skor berjalannya,
+## semuanya hilang. Pemain yang cuma lupa tombol dash tidak boleh kehilangan
+## rondenya karena membuka bantuan.
+func _buka_papan() -> void:
+	if _papan != null:
+		return
+	_papan = BRIEFING_SCENE.instantiate()
+	_papan.mandiri = false
+	_papan.bab = GameState.current_chapter
+	_papan.ditutup.connect(_papan_ditutup)
+	add_child(_papan)
+	_panel.visible = false
+
+
+func _papan_ditutup() -> void:
+	_papan = null
+	# Kembali ke menu jeda, bukan langsung ke permainan: pemain menutup papan
+	# untuk berhenti membaca, bukan untuk melompat balik ke air.
+	_panel.visible = true
+	%ResumeButton.grab_focus()
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if not event.is_action_pressed("ui_cancel"):
+		return
+	# Selama papan instruksi terbuka, Esc miliknya -- dia yang menutup dirinya
+	# sendiri. Tanpa penjaga ini, satu Esc menutup papan DAN menu jedanya
+	# sekaligus, dan pemain terlempar kembali ke permainan tanpa diminta.
+	if _papan != null:
 		return
 	if not enabled and not _panel.visible:
 		return

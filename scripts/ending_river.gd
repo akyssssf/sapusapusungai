@@ -17,7 +17,7 @@ var _flow_offset: float = 0.0
 
 func _ready() -> void:
 	_lock_left = input_lock
-	_hint.text = "Skor terbaik keseluruhan %d   -   tekan Enter untuk kembali ke menu" % GameState.total_best_score()
+	_hint.text = "Skor terbaik keseluruhan %d   -   tekan Enter untuk melanjutkan" % GameState.total_best_score()
 	AudioManager.play_music(AudioManager.MUSIC_RIVER, 2.0)
 
 
@@ -37,4 +37,6 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not event.is_action_pressed("ui_accept"):
 		return
 	AudioManager.set_music_pitch(1.0)
-	SceneRouter.go_to_menu()
+	# Layar ini bukan akhir cerita, cuma pemandangannya. Kesimpulannya ada di
+	# cutscene penutup -- dan cutscene itu yang mengantar pemain ke menu.
+	SceneRouter.play_cutscene(Story.PENUTUP)

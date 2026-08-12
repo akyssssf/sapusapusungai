@@ -1,7 +1,7 @@
 # Daftar Uji — Map 3 Kali Jeroan Madiun
 
-Status: **tiga sumbatan, kesulitannya menaik, dan sekarang ada jendela waktu.**
-Sebelumnya bab ini cuma 1 sumbatan tanpa tekanan waktu dan skornya selalu 0.
+Status: **sekarang benar-benar puzzle.** Yang menentukan bukan lagi kelincahan, tapi
+**urutan** — dan urutan yang benar justru melawan insting pemain.
 
 ```
 /Applications/Godot.app/Contents/MacOS/Godot --path . res://scenes/maps/map3_jeroan.tscn
@@ -11,104 +11,97 @@ Kontrol: **WASD / panah** berenang · **Tab** (atau **Q**, atau **klik ikan**) g
 
 ---
 
-## Yang berubah di putaran ini
+## Aturan yang mengubah bab ini
 
-### 1. Jendela waktu akhirnya ada
+Sebelumnya bab ini hambar karena cuma ada **satu cara** menyelesaikannya: bawa ikan A,
+parkir, bawa ikan B, tunggu. Tidak ada keputusan yang bisa salah — dan tanpa keputusan
+yang bisa salah, tidak ada puzzle.
 
-Pertanyaan lama di dokumen ini — *"apakah ini sudah terasa seperti puzzle, atau cuma
-tugas?"* — sumbernya adalah ikan yang ditinggal diam selamanya, sehingga syarat
-"bertahan sekian detik" praktis terpenuhi otomatis.
+Sekarang ada satu aturan tambahan, dan cuma satu:
 
-Sekarang `idle_current_drift = 13` di kedua ikan. Ikan yang Anda tinggalkan pelan-pelan
-hanyut **ke kiri**, melawan arah tujuan. Menaruh ikan pertama jadi punya batas waktu, dan
-urutan yang Anda pilih mulai berpengaruh.
+> **Sebuah sumbatan melepas ARUS DERAS kalau tidak ada lagi sumbatan lain yang masih
+> tertutup di HILIRNYA.**
 
-> **Ini keputusan desain Anda, dan satu angka untuk membatalkannya.**
-> Isi `idle_current_drift = 0` di FishA dan FishB, dan bab ini kembali persis seperti
-> sebelumnya. Tidak ada kode yang perlu disentuh.
+Logikanya nyata: air yang dilepas dari hulu akan **ditahan** sumbatan berikutnya di hilir,
+jadi cuma menggenang. Tapi air yang dilepas dari hilir tidak ditahan apa pun — seluruh
+kolam yang tertahan di belakangnya **menghambur sekaligus**, dan menyeret kedua ikan Anda
+ke kiri selama 11 detik.
 
-### 2. Tiga sumbatan, bukan satu
+Dari satu aturan itu, urutan yang benar muncul sendiri:
 
-| Sumbatan | Posisi | Radius | Waktu tahan | Yang bikin sulit |
-|---|---|---|---|---|
-| Sumbatan1 | (600, 430) | 200 | 1,4 dtk | air terbuka — di sini pemain belajar aturannya |
-| Sumbatan2 | (1030, 310) | 200 | 1,9 dtk | menempel tebing atas, ikan harus berkumpul dari bawah |
-| Sumbatan3 | (1380, 580) | 200 | 2,4 dtk | paling jauh, tahan paling lama, hanyut paling terasa |
+```
+    HILIR (kiri)                                    HULU (kanan)
+    ikan lahir di sini                              kerja mulai dari sini
+         ●●                                                  │
+         │                                                   │
+    [Sumbatan  ]        [Sumbatan  ]        [Sumbatan  ]     │
+    [  Hilir   ]        [  Tengah  ]        [   Hulu   ]◄────┘  1. dulu
+         ▲                    ▲
+         │                    └────────────────────────────────  2. lalu
+         └─────────────────────────────────────────────────────  3. terakhir
+```
 
-Yang menaik sengaja **waktu tahan dan jarak tempuh**, bukan radiusnya. Radius yang
-diperkecil terus akan bentrok dengan lantai fisik 116 px (badan sumbatan 86 + ikan 30) —
-ikan tidak akan pernah bisa lebih dekat dari itu, jadi memperkecil radius cuma menyisakan
-pita sempit yang membuat puzzle terasa jahil, bukan sulit.
+**Yang membuatnya jadi teka-teki, bukan jebakan:** tiap sumbatan memasang penanda
+sebelum disentuh — **AMAN** (hijau) atau **AWAS - DERAS** (oranye, dengan panah ke arah
+air akan lari). Pemain bisa membaca akibatnya sebelum bertindak. Penandanya berpindah
+sendiri tiap kali satu sumbatan terbuka.
 
-### 3. Skor Bab 3 tidak lagi nol
+**Dan yang paling terakhir justru jadi hadiahnya:** saat sumbatan hilir dibuka terakhir,
+arusnya tetap menghambur — tapi sudah tidak ada pekerjaan yang bisa dirusaknya. Itu
+momen sungai akhirnya jalan.
 
-Dulu `record_score(3, GameState.score)` dipanggil, tapi **tidak ada satu pun yang pernah
-menambah skor di Map 3**. Akibatnya kartu Bab 3 di layar pilih bab selalu berbunyi
-"SELESAI skor terbaik 0", dan "Skor terbaik keseluruhan" di menu utama diam-diam
-mengabaikan sepertiga permainan.
-
-Sekarang tiap sumbatan memberi **500 + bonus efisiensi sampai 500**, bonusnya menyusut
-habis dalam 24 detik sejak sumbatan sebelumnya terbuka. Skor sempurna satu ronde = **3000**.
-
-Kenapa waktu yang dipakai sebagai ukuran padahal ini bukan lomba lari: di bab ini tidak
-ada nyawa dan tidak ada sampah, jadi tidak ada lagi yang bisa diukur dengan jujur. Pemain
-yang salah membaca aturannya akan bolak-balik menggerakkan satu ikan dan membiarkan
-progres menyusut — dan itu semua muncul sebagai detik yang terbuang. Waktu jeda tidak
-ikut dihitung.
+Menamatkan tanpa sekali pun salah urutan memberi **RENCANA SEMPURNA +600**.
 
 ---
 
 ## Sudah diuji otomatis — tidak perlu diulang
 
-- Tiga sumbatan terbaca wasit; waktu tahan menaik 1,4 → 1,9 → 2,4
-- **Ketiganya masih bisa diselesaikan** dengan hanyut menyala. Jendela ikan yang diparkir
-  6,5 dtk, sedangkan yang dibutuhkan (perjalanan ikan kedua + waktu tahan + jeda menekan
-  Tab) paling banyak 5,1 dtk di Sumbatan3
-- Radius antar sumbatan tidak bertumpuk (446 px dan 442 px, ambangnya 400 px) — jadi tidak
-  pernah ada dua cincin progres terisi bersamaan
-- Tidak ada sumbatan yang tertanam di dalam tebing
-- Skor: cepat → 1000, lambat → tetap dapat 500 dasarnya, setengah waktu → 750
-- Bar aliran tidak menghitung ganda saat satu sumbatan sedang pecah
-- Gerbang progres, pergantian kendali, tebing menahan, kamera dua ikan, layar ending
-  (semuanya dari putaran sebelumnya, masih lulus)
+- Tiga sumbatan diurutkan sendiri dari hilir ke hulu; **hanya satu berpenanda DERAS**
+  pada satu waktu, dan penandanya berpindah setelah tiap sumbatan terbuka
+- Membuka hilir duluan **melepas arus** dan menghanguskan bonus rencana sempurna
+- Membuka hulu duluan **tidak melepas arus** sama sekali
+- Sumbatan terakhir tetap melepas arus, **tapi tidak dihitung sebagai kesalahan**, dan
+  bonus rencana sempurna tetap diberikan (+1600 total di sumbatan itu)
+- Arus mendorong ikan yang berada di **hulu** titik lepasnya; ikan yang sudah lewat
+  lubangnya tidak ditarik balik
+- Arus mereda sendiri sampai nol — kesalahan urutan itu mahal, bukan permanen
+- Arus (190 px/dtk) **lebih lemah** daripada kecepatan renang (300) — pemain melawan
+  arus, bukan kehilangan kendali
+- Ketiga sumbatan masih terjangkau dalam urutan yang benar (jendela 10,5 dtk vs
+  kebutuhan terberat 8,2 dtk di Sumbatan Hulu)
+- Radius antar sumbatan tidak bertumpuk (444 dan 429 px, ambangnya 400)
+- Skor: cepat → 1000, lambat → 500, setengah waktu → 750; bar aliran tidak menghitung ganda
 
 ---
 
-## A. Kejelasan mekanik (yang paling penting)
+## A. Apakah sekarang terasa seperti puzzle? (pertanyaan utama)
 
 Main **tanpa membaca dokumen ini dulu**.
 
-- [ ] Dari banner pembuka saja, paham bahwa butuh **dua** ikan?
-- [ ] Satu ikan dekat (**outline kuning + garis kuning**) terbaca sebagai "benar, tapi
-      kurang satu"?
-- [ ] Dua ikan dekat (**outline biru + cincin mengisi**) jelas berarti tinggal bertahan?
-- [ ] Detak suara yang makin cepat membantu saat mata Anda sedang melihat ikan?
+- [ ] **Percobaan pertama Anda mulai dari sumbatan yang mana?** (jujur — kalau dari yang
+      kiri, itu justru hasil yang saya harapkan)
+- [ ] Setelah arusnya menghambur, banner penjelasannya membuat Anda paham **sebabnya**,
+      atau cuma terasa dihukum tiba-tiba?
+- [ ] Di percobaan kedua, Anda langsung tahu harus mulai dari kanan?
+- [ ] Penanda **AMAN / AWAS-DERAS** terbaca sebelum Anda bertindak, atau baru ketahuan
+      setelah terlambat?
+- [ ] Panah oranye jelas menunjukkan ke mana airnya akan lari?
+- [ ] Setelah tahu jawabannya, mengulang bab ini masih menarik (mengejar RENCANA
+      SEMPURNA), atau jadi hambar lagi?
 
-## B. Jendela waktu — yang paling perlu dinilai sekarang
+## B. Rasa arusnya
 
-- [ ] **Sadar sendiri bahwa ikan yang ditinggal hanyut**, atau baru tahu setelah membaca
-      petunjuk di bawah layar?
-- [ ] 13 px/dtk terasa **pas, terlalu pelan (tidak berasa), atau terlalu cepat (menjengkelkan)**?
-- [ ] Pernah gagal karena ikan pertama keluar radius tepat sebelum selesai? Kalau ya,
-      terasa adil atau curang?
-- [ ] Sumbatan3 (paling jauh + tahan 2,4 dtk) terasa sebagai puncak, atau sudah frustrasi?
+- [ ] 190 px/dtk terasa **berat tapi masih bisa dilawan**, atau kendali serasa dirampas?
+- [ ] 11 detik terasa pas, atau kelamaan menunggu?
+- [ ] Meredanya terasa alami?
+- [ ] Sumbatan terakhir yang melepas arus sebagai penutup: terasa sebagai kemenangan?
 
-## C. Kesulitan yang menaik
+## C. Yang lama, masih perlu dinilai
 
-- [ ] Urutan Sumbatan1 → 2 → 3 terasa makin sulit, atau sama saja?
-- [ ] Sumbatan2 yang menempel tebing: jelas harus dikerjakan dari bawah?
-- [ ] Tiga sumbatan terasa **cukup, kurang, atau kepanjangan**? (catat menitnya)
-
-## D. Skor
-
-- [ ] Angka "+1000" / "+750" di banner terbaca sebagai hadiah karena cepat?
-- [ ] Skor di kanan atas mengganggu, atau membantu?
-- [ ] Setelah tamat, skor Bab 3 muncul benar di kartu layar pilih bab?
-
-## E. Bagian akhir
-
-- [ ] Sumbatan terdorong keluar lalu pecah: terbaca sebagai **didorong berdua**?
-- [ ] Layar "SUNGAI LANCAR" terasa sebagai penutup yang pantas?
+- [ ] Satu ikan dekat (**outline kuning**) vs dua ikan (**outline biru + cincin**) jelas?
+- [ ] Hanyut 8 px/dtk saat ikan ditinggal: masih terasa, atau sudah tidak berarti?
+- [ ] Kamera dua ikan saat keduanya berjauhan membantu atau bikin pusing?
+- [ ] Berapa lama satu ronde penuh sekarang? (**catat menitnya**)
 
 ---
 
@@ -116,36 +109,38 @@ Main **tanpa membaca dokumen ini dulu**.
 
 | Yang mau diubah | Node | Properti |
 |---|---|---|
-| **Kuat arus menghanyutkan ikan yang ditinggal** | FishA / FishB | `idle_current_drift` (13; **0 = mati**) |
-| Arah arus | FishA / FishB | `idle_current_direction` (kiri) |
+| **Kekuatan arus deras** | Map3Jeroan | `kekuatan_arus` (190) |
+| **Lama arus mereda** | Map3Jeroan | `lama_arus` (11 dtk) |
+| **Hadiah urutan benar** | Map3Jeroan | `bonus_rencana_sempurna` (600) |
+| Hanyut ikan yang ditinggal | FishA / FishB | `idle_current_drift` (8; 0 = mati) |
 | Nilai dasar tiap sumbatan | Map3Jeroan | `score_per_obstacle` (500) |
 | Bonus cepat maksimum | Map3Jeroan | `max_efficiency_bonus` (500) |
 | Lama bonus habis | Map3Jeroan | `bonus_fade_seconds` (24 dtk) |
 | Radius "dekat sumbatan" | tiap Sumbatan | `push_radius` (200) |
-| Lama harus bertahan | tiap Sumbatan | `hold_time` (1,4 / 1,9 / 2,4) |
-| Cepatnya progres menyusut | tiap Sumbatan | `decay_rate` (0,55) |
-| Kecepatan & rem ikan | FishA / FishB | `max_speed` (300), `water_drag` (1400) |
-| Batas zoom kamera | DuoCamera | `zoom_range` (1,0 → 0,62) |
+| Lama harus bertahan | tiap Sumbatan | `hold_time` (1,6 / 2,0 / 2,4) |
+| Warna penanda ramalan | tiap Sumbatan | `warna_aman` / `warna_deras` |
 | Gerbang progres | Map3Jeroan | `requires_map2`, `bypass_progress_gate` |
 
-## Menambah sumbatan lagi nanti
+## Menambah atau menggeser sumbatan
 
-Duplikat salah satu node **Sumbatan** di dalam `Obstacles`, geser posisinya. Wasitnya
-menghitung sendiri berapa yang ada dan mengatur bar aliran, skor, serta ending. Tidak ada
-angka total yang perlu diubah manual.
+Duplikat salah satu node **Sumbatan** di dalam `Obstacles`, geser posisinya. Wasit
+mengurutkan sendiri berdasarkan posisi X dan menghitung ulang siapa yang AMAN dan siapa
+yang DERAS. **Tidak ada daftar urutan yang ditulis mati di mana pun** — jawabannya ikut
+berubah sendiri.
 
-**Dua syarat yang perlu dijaga** kalau menggeser atau menambah:
+**Tiga syarat yang perlu dijaga:**
 1. Jarak ke sumbatan tetangga harus **lebih besar dari jumlah kedua radiusnya** (dengan
    radius 200, artinya lebih dari 400 px), supaya tidak ada dua cincin terisi sekaligus.
 2. `(push_radius - 116) / idle_current_drift` harus **lebih besar dari** waktu tempuh ikan
-   kedua ditambah `hold_time`, kalau tidak sumbatan itu mustahil dibuka.
+   kedua ditambah `hold_time`. Angka 116 itu lantai fisik: badan sumbatan 86 + ikan 30.
+3. `kekuatan_arus` harus **di bawah** `max_speed` ikan (300), kalau tidak pemain kehilangan
+   kendali alih-alih ditantang.
 
 ---
 
 ## Belum ada — sengaja
 
-- **Latar masih sederhana**: gradasi air + tebing polos + partikel arus. Belum ada sprite
-  lingkungan asli.
-- **Layar ending masih placeholder**: latar biru + garis arus bergerak + teks.
-- Map 3 tidak memakai satu pun script Map 1/2. `player_fish.gd`, `trash.gd`, `hud.gd`,
-  dan `map_manager.gd` tidak disentuh, jadi tidak ada kode mati yang terbawa.
+- **Latar masih sederhana**: gradasi air + tebing polos + partikel arus.
+- **Arus deras belum punya visual sendiri** selain guncangan kamera dan bunyi — partikel
+  arus derasnya menyusul.
+- Map 3 tidak memakai satu pun script Map 1/2.

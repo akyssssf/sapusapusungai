@@ -7,11 +7,24 @@ extends Node2D
 ## dimatikan lewat properti -- dan file seperti itu selalu berakhir jadi sarang
 ## bug, karena tidak ada yang ingat cabang mana yang masih hidup.
 ##
-## Tugas file ini cuma empat:
+## Tugas file ini cuma lima:
 ##   1. Memeriksa gerbang progres (Map 2 harus selesai).
 ##   2. Menyiapkan dua ikan dan menentukan siapa yang sedang dikendalikan.
 ##   3. Menghitung berapa sumbatan yang sudah terbuka.
-##   4. Memanggil layar ending saat semuanya terbuka.
+##   4. MENJADI HAKIM URUTAN -- menentukan sumbatan mana yang kalau dibuka
+##      sekarang akan melepas arus deras, dan menjalankan akibatnya.
+##   5. Memanggil layar ending saat semuanya terbuka.
+##
+## Tugas nomor 4 itu isi puzzlenya, dan seluruh aturannya cuma satu kalimat:
+##
+##     Sebuah sumbatan melepas ARUS DERAS kalau tidak ada lagi sumbatan lain
+##     yang masih tertutup di HILIRNYA (sebelah kirinya).
+##
+## Dari satu kalimat itu, urutan yang benar muncul sendiri: kerjakan dari hulu,
+## sisakan yang paling hilir untuk terakhir -- dan yang terakhir itu justru
+## menjadi hadiahnya, karena saat itu sudah tidak ada pekerjaan yang bisa
+## dirusak arusnya. Tidak ada daftar urutan yang ditulis mati di mana pun;
+## kalau sumbatannya digeser atau ditambah, jawabannya ikut berubah sendiri.
 
 enum Phase { BERMAIN, SELESAI, TERKUNCI }
 
@@ -28,6 +41,20 @@ enum Phase { BERMAIN, SELESAI, TERKUNCI }
 ## dari editor. Aman dibiarkan menyala: pemain tidak pernah sampai ke sini
 ## kecuali lewat layar pilih bab, yang punya penguncian sendiri.
 @export var bypass_progress_gate: bool = true
+
+@export_group("Arus deras")
+## Kecepatan dorongan saat kolam yang tertahan menghambur, piksel per detik.
+## Sengaja di bawah kecepatan renang ikan (300): pemain harus MASIH bisa
+## bergerak melawannya, cuma jadi lambat dan susah berhenti di titik yang tepat.
+## Arus yang lebih kencang daripada ikan bukan tantangan, cuma kendali yang
+## diambil paksa.
+@export var kekuatan_arus: float = 190.0
+## Berapa lama arusnya mereda. Kolam yang tertahan memang habis; kesalahan
+## urutan harus MAHAL, bukan permanen.
+@export var lama_arus: float = 11.0
+## Hadiah kalau pemain menamatkan bab tanpa sekali pun melepas arus deras
+## sebelum waktunya. Inilah yang dikejar pemain yang mengulang.
+@export var bonus_rencana_sempurna: int = 600
 
 @export_group("Skor")
 ## Nilai dasar tiap sumbatan yang berhasil dibuka.
@@ -69,6 +96,17 @@ var _phase: int = Phase.BERMAIN
 ## DIJEDA tidak ikut terhitung -- node ini berhenti diproses saat dijeda.
 var _segment_time: float = 0.0
 
+## Sisa waktu arus deras yang sedang berjalan, dan titik lepasnya.
+var _arus_sisa: float = 0.0
+var _arus_dari_x: float = 0.0
+## Pernah melepas arus deras padahal masih ada pekerjaan tersisa. Sekali true,
+## bonus rencana sempurna hangus untuk ronde ini.
+var _pernah_salah_urutan: bool = false
+## Layar MISI SELESAI sudah tampil dan sedang menunggu pemain menekan tombol.
+var _menunggu_lanjut: bool = false
+
+const MISI_SELESAI_SCENE := preload("res://scenes/ui/mission_complete.tscn")
+
 
 func _ready() -> void:
 	GameState.begin_run(3, scene_file_path)
@@ -94,7 +132,7 @@ func _ready() -> void:
 	_set_active(0)
 
 	_hud.set_progress(0, _total_obstacles)
-	_hud.show_banner("Sungai sudah bersih, tapi airnya tetap tertahan.\nDorong sumbatan bambu -- BERDUA.", 5.0)
+	_hud.show_banner("Sungai sudah bersih, tapi airnya tetap tertahan.\nDorong sumbatan bambu -- BERDUA, dan perhatikan penandanya.", 5.5)
 	AudioManager.play_music(AudioManager.MUSIC_RIVER, 1.8)
 
 
@@ -119,13 +157,42 @@ func _setup_obstacles() -> void:
 			continue
 		_obstacles.append(child)
 		child.setup(_fish)
-		child.cleared.connect(_on_obstacle_cleared)
+		# Sumbatan tidak tahu dirinya yang ke berapa, dan memang tidak perlu
+		# tahu. Yang dioper cuma dirinya sendiri, dan wasit yang mencocokkan.
+		child.cleared.connect(_on_obstacle_cleared.bind(child))
+	# Diurutkan dari HILIR ke HULU sekali di awal. Dipakai terus setelah ini,
+	# jadi urusan "mana yang lebih hilir" tidak pernah dihitung ulang di tengah
+	# permainan -- dan tidak ada tempat kedua yang bisa salah mengurutkannya.
+	_obstacles.sort_custom(func(a, b): return a.position.x < b.position.x)
 	_total_obstacles = _obstacles.size()
 	if _total_obstacles == 0:
 		push_warning("map3_manager: tidak ada sumbatan di node Obstacles.")
+	_segarkan_ramalan()
+
+
+## Memberi tahu tiap sumbatan yang masih tertutup: kalau kamu dibuka SEKARANG,
+## apakah airmu akan ditahan sesuatu di hilir?
+##
+## Jawabannya cuma benar untuk SATU sumbatan pada satu waktu -- yang paling
+## hilir di antara yang tersisa. Sisanya selalu aman, karena dia sendiri yang
+## menahan air mereka.
+func _segarkan_ramalan() -> void:
+	var paling_hilir: Node = null
+	for o in _obstacles:
+		if _masih_tertutup(o):
+			paling_hilir = o
+			break
+	for o in _obstacles:
+		if _masih_tertutup(o):
+			o.set_akan_deras(o == paling_hilir)
+
+
+func _masih_tertutup(o: Node) -> bool:
+	return is_instance_valid(o) and not o.is_queued_for_deletion() and not o.akan_pecah()
 
 
 func _process(delta: float) -> void:
+	_perbarui_arus(delta)
 	if _phase != Phase.BERMAIN:
 		return
 	_segment_time += delta
@@ -133,6 +200,56 @@ func _process(delta: float) -> void:
 	# selesai. Dengan begitu pemain melihat usahanya terbayar SELAMA menahan,
 	# bukan baru setelah berhasil.
 	_hud.set_progress_fine(float(_cleared) + _active_charge(), _total_obstacles)
+
+
+# --- Arus deras -------------------------------------------------------------
+
+func _perbarui_arus(delta: float) -> void:
+	if _arus_sisa <= 0.0:
+		return
+	_arus_sisa = maxf(_arus_sisa - delta, 0.0)
+
+	# Meredanya dibuat melengkung (kuadrat), bukan lurus. Arus yang mereda lurus
+	# terasa seperti keran yang diputar pelan-pelan oleh seseorang; kolam yang
+	# habis isinya memang deras di awal lalu cepat kehilangan tenaga.
+	var sisa := _arus_sisa / maxf(lama_arus, 0.01)
+	var kuat := kekuatan_arus * sisa * sisa
+
+	for ikan in _fish:
+		if not is_instance_valid(ikan):
+			continue
+		# Cuma ikan yang berada di HULU titik lepasnya yang tersedot. Air yang
+		# sudah lewat lubang tidak menarik apa pun lagi ke belakang.
+		if ikan.global_position.x <= _arus_dari_x:
+			ikan.arus = Vector2.ZERO
+			continue
+		ikan.arus = Vector2.LEFT * kuat
+
+	if _arus_sisa <= 0.0:
+		for ikan in _fish:
+			if is_instance_valid(ikan):
+				ikan.arus = Vector2.ZERO
+		if _phase == Phase.BERMAIN:
+			_hud.show_banner("Arusnya reda. Kolamnya sudah habis.", 2.2)
+
+
+## Melepas arus dari sebuah titik. rusak = masih ada pekerjaan yang bisa
+## diganggu; kalau tidak, ini justru sungai yang akhirnya jalan.
+func _lepas_arus(dari_x: float, merusak: bool) -> void:
+	_arus_sisa = lama_arus
+	_arus_dari_x = dari_x
+	_camera.shake(26.0)
+	AudioManager.play("boss_suck", -1.0, 0.62, 0.03)
+	if not merusak:
+		return
+
+	_pernah_salah_urutan = true
+	# Banner ini mengubah kegagalan jadi pelajaran. Pemain yang cuma melihat
+	# ikannya tiba-tiba tersapu akan menyalahkan kontrolnya; pemain yang tahu
+	# SEBABNYA akan mengulang dengan rencana lain -- dan itu bedanya puzzle
+	# dengan jebakan.
+	_hud.show_banner(
+		"Sumbatan paling hilir dibuka duluan!\nSeluruh kolam yang tertahan menghambur.", 3.6)
 
 
 ## Progres sumbatan yang sedang dikerjakan, 0.0 sampai 1.0.
@@ -152,6 +269,16 @@ func _unhandled_input(event: InputEvent) -> void:
 			SceneRouter.go_to_chapter_select()
 			get_viewport().set_input_as_handled()
 		return
+	# Layar MISI SELESAI menunggu satu tombol sebelum lanjut ke "SUNGAI LANCAR".
+	# Tidak otomatis: pemain yang baru dapat tiga bintang berhak memandanginya
+	# selama yang dia mau.
+	if _menunggu_lanjut:
+		if event.is_action_pressed("ui_accept"):
+			_menunggu_lanjut = false
+			SceneRouter.go_to(ending_scene)
+			get_viewport().set_input_as_handled()
+		return
+
 	if _phase != Phase.BERMAIN:
 		return
 
@@ -202,8 +329,11 @@ func _efficiency_bonus() -> int:
 	return int(round(float(max_efficiency_bonus) * left))
 
 
-func _on_obstacle_cleared() -> void:
+func _on_obstacle_cleared(sumbatan: Node) -> void:
 	_cleared += 1
+	var melepas_arus: bool = sumbatan.akan_deras
+	var masih_ada_kerjaan := _cleared < _total_obstacles
+
 	var bonus := _efficiency_bonus()
 	GameState.add_score(score_per_obstacle + bonus)
 	# Hitungan waktu dimulai lagi dari nol untuk sumbatan berikutnya, supaya
@@ -211,20 +341,52 @@ func _on_obstacle_cleared() -> void:
 	_segment_time = 0.0
 	_camera.shake(18.0)
 	_hud.set_progress(_cleared, _total_obstacles)
+	# Ramalan disegarkan SEBELUM banner apa pun tampil, supaya penanda di layar
+	# sudah benar pada frame yang sama saat pemain melihat akibatnya.
+	_segarkan_ramalan()
 
-	if _cleared < _total_obstacles:
-		# Angkanya disebut supaya pemain tahu bahwa cepat itu berarti sesuatu --
-		# tanpa ini, bonus efisiensi jadi aturan tersembunyi yang tidak adil.
-		_hud.show_banner("Satu sumbatan lepas  (+%d).  Sisa %d lagi." %
-			[score_per_obstacle + bonus, _total_obstacles - _cleared], 2.6)
+	if melepas_arus:
+		_lepas_arus(sumbatan.global_position.x, masih_ada_kerjaan)
+
+	if masih_ada_kerjaan:
+		if not melepas_arus:
+			# Angkanya disebut supaya pemain tahu bahwa cepat itu berarti sesuatu
+			# -- tanpa ini, bonus efisiensi jadi aturan tersembunyi yang tidak
+			# adil. Saat arus deras lepas, banner peringatan lebih penting
+			# daripada angka, jadi yang ini mengalah.
+			_hud.show_banner("Satu sumbatan lepas  (+%d).  Sisa %d lagi." %
+				[score_per_obstacle + bonus, _total_obstacles - _cleared], 2.6)
 		return
 
+	_selesaikan()
+
+
+func _selesaikan() -> void:
 	_phase = Phase.SELESAI
 	_pause.enabled = false
-	_hud.show_banner("Airnya mengalir lagi!  Skor %d." % GameState.score, ending_delay)
+
+	var sempurna := not _pernah_salah_urutan
+	if sempurna:
+		GameState.add_score(bonus_rencana_sempurna)
+
+	var kabar := "Airnya mengalir lagi!  Skor %d." % GameState.score
+	if sempurna:
+		kabar = "RENCANA SEMPURNA  (+%d)\nAirnya mengalir lagi tanpa sekali pun menghambur." \
+			% bonus_rencana_sempurna
+	_hud.show_banner(kabar, ending_delay)
 	AudioManager.play("river_flows", 2.0, 1.0, 0.0)
+
 	await get_tree().create_timer(ending_delay).timeout
-	if is_inside_tree():
-		GameState.record_score(3, GameState.score)
-		GameState.mark_map_completed(3)
-		SceneRouter.go_to(ending_scene)
+	if not is_inside_tree():
+		return
+
+	GameState.last_perfect = sempurna
+	# Rekor diperiksa sebelum babnya ditandai tamat -- lihat penjelasan yang
+	# sama di map_manager.gd.
+	var rekor_baru := GameState.record_score(3, GameState.score)
+	GameState.mark_map_completed(3)
+
+	var layar: CanvasLayer = MISI_SELESAI_SCENE.instantiate()
+	add_child(layar)
+	layar.tampilkan(3, GameState.score, rekor_baru, sempurna, "Enter  lihat sungainya")
+	_menunggu_lanjut = true

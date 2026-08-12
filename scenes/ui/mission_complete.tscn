@@ -1,0 +1,124 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/mission_complete.gd" id="1_mc"]
+
+[sub_resource type="StyleBoxFlat" id="sb_kotak"]
+bg_color = Color(0.03, 0.08, 0.11, 0.9)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.35, 0.87, 0.98, 0.45)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+
+[node name="MissionComplete" type="CanvasLayer"]
+script = ExtResource("1_mc")
+
+[node name="Dim" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.02, 0.05, 0.07, 0.55)
+
+[node name="Kotak" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -280.0
+offset_right = 400.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(400, 265)
+mouse_filter = 2
+theme_override_styles/panel = SubResource("sb_kotak")
+
+[node name="Isi" type="VBoxContainer" parent="Kotak"]
+theme_override_constants/separation = 10
+
+[node name="Atas" type="Control" parent="Kotak/Isi"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="Judul" type="Label" parent="Kotak/Isi"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.62, 0.93, 0.75, 1)
+theme_override_colors/font_outline_color = Color(0.02, 0.05, 0.07, 0.95)
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 52
+text = "MISI SELESAI"
+horizontal_alignment = 1
+
+[node name="NamaBab" type="Label" parent="Kotak/Isi"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.97, 1, 1)
+theme_override_colors/font_outline_color = Color(0.02, 0.05, 0.07, 0.9)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 26
+text = ""
+horizontal_alignment = 1
+
+[node name="BintangBaris" type="HBoxContainer" parent="Kotak/Isi"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+theme_override_constants/separation = 22
+alignment = 1
+
+[node name="LabelSkor" type="Label" parent="Kotak/Isi"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.5)
+theme_override_font_sizes/font_size = 17
+text = "SKOR"
+horizontal_alignment = 1
+
+[node name="Skor" type="Label" parent="Kotak/Isi"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.84, 1)
+theme_override_colors/font_outline_color = Color(0.02, 0.05, 0.07, 0.95)
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 60
+text = "0"
+horizontal_alignment = 1
+
+[node name="Lencana" type="VBoxContainer" parent="Kotak/Isi"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 84)
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="Rincian" type="Label" parent="Kotak/Isi"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.79, 0.9, 0.94, 0.9)
+theme_override_colors/font_outline_color = Color(0.02, 0.05, 0.07, 0.9)
+theme_override_constants/outline_size = 7
+theme_override_font_sizes/font_size = 18
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Petunjuk" type="Label" parent="Kotak/Isi"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.83, 0.87, 1)
+theme_override_colors/font_outline_color = Color(0.02, 0.05, 0.07, 0.9)
+theme_override_constants/outline_size = 7
+theme_override_font_sizes/font_size = 19
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 3

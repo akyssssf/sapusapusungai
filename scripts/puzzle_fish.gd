@@ -45,6 +45,16 @@ var is_active: bool = false
 ## Kotak air tempat ikan boleh berenang. Diisi map3_manager.
 var swim_bounds: Rect2 = Rect2()
 
+## Dorongan arus dari luar, piksel per detik. Diisi map3_manager saat sebuah
+## sumbatan dibuka dan air yang tertahan menghambur.
+##
+## Ditambahkan SESUDAH gerak sendiri dihitung, bukan dicampur ke dalamnya.
+## Bedanya terasa: kalau dicampur, ikan yang berenang melawan arus akan pelan
+## tapi tetap "menurut". Kalau ditambahkan terpisah, pemain merasakan dirinya
+## didorong -- kendalinya utuh, tapi airnya menang. Itu yang benar, karena arus
+## di sini memang hukuman atas urutan yang salah, bukan kontrol yang rusak.
+var arus: Vector2 = Vector2.ZERO
+
 var _wiggle_time: float = 0.0
 
 @onready var _sprite: Sprite2D = $Sprite2D
@@ -73,7 +83,16 @@ func _physics_process(delta: float) -> void:
 		velocity = velocity.move_toward(idle_current_direction.normalized() * idle_current_drift,
 			water_drag * delta)
 
+	# Arus deras berlaku untuk KEDUA ikan, yang dikendalikan maupun yang
+	# ditinggal. Air tidak memilih siapa yang sedang dipegang pemain.
+	var simpan := velocity
+	velocity += arus
 	move_and_slide()
+	# Kecepatan sendiri dikembalikan setelah bergerak, supaya dorongan arus tidak
+	# menumpuk jadi percepatan tiap frame. Tanpa ini, ikan yang berdiri diam
+	# selama tiga detik akan melesat seperti ditembakkan.
+	velocity = simpan
+
 	_keep_inside_bounds()
 	_animate(delta)
 
