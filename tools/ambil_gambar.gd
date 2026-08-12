@@ -14,6 +14,7 @@ const SASARAN := [
 	["res://scenes/maps/map2_ciliwung.tscn", "user://bab2.png", 8.0],
 	["res://scenes/ui/main_menu.tscn", "user://menu.png", 1.5],
 	["res://scenes/ui/briefing.tscn", "user://papan.png", 1.2],
+	["res://scenes/ui/boss_card.tscn", "user://kartu_bos.png", 1.0],
 ]
 
 func _ready() -> void:
@@ -40,6 +41,7 @@ func _ready() -> void:
 		print("%s -> %s (%dx%d) err=%d" % [
 			s[0].get_file(), s[1], gambar.get_width(), gambar.get_height(), err])
 		scene.queue_free()
+		get_tree().paused = false
 		await get_tree().process_frame
 
 	get_tree().quit(0)

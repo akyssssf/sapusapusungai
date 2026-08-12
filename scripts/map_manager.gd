@@ -239,6 +239,10 @@ func _enter_phase(next_phase: int) -> void:
 			_hud.show_banner(clear_banner, 3.4)
 		Phase.BOS:
 			_boss_countdown = boss_entry_delay
+			# Kartu bos dulu, banner belakangan. Kartunya menjeda permainan, jadi
+			# hitung mundur masuknya bos baru benar-benar berjalan sesudah pemain
+			# menutupnya -- dia tidak akan pernah kehilangan waktu membaca.
+			_tampilkan_kartu_bos()
 			_hud.show_banner("Sungai bersih... tapi ada yang mendekat.", boss_entry_delay)
 			# Musik ditukar SEBELUM bosnya kelihatan. Telinga selalu lebih cepat
 			# dari mata: pemain sudah tegang duluan sebelum tahu kenapa.
@@ -307,6 +311,16 @@ func _enter_phase(next_phase: int) -> void:
 
 
 const MISI_SELESAI_SCENE := preload("res://scenes/ui/mission_complete.tscn")
+const KARTU_BOS_SCENE := preload("res://scenes/ui/boss_card.tscn")
+
+
+## Kartu "cara melawan bos", ditampilkan tepat sebelum Induk Sapu-Sapu masuk.
+## Hanya untuk peta yang memang punya bos -- petanya sendiri yang menentukan
+## lewat boss_scene, jadi menambah peta tanpa bos tidak perlu mematikan apa pun.
+func _tampilkan_kartu_bos() -> void:
+	if boss_scene == null:
+		return
+	add_child(KARTU_BOS_SCENE.instantiate())
 const AIR_MEMBERSIH := preload("res://scripts/water_clearing.gd")
 
 

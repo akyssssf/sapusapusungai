@@ -18,6 +18,10 @@ Papan instruksi tiap bab — aturan ukuran ditunjukkan, bukan dijelaskan:
 
 ![Papan instruksi](docs/papan.png)
 
+Dan kartu bos yang muncul tepat sebelum Induk Sapu-Sapu masuk arena:
+
+![Kartu bos](docs/kartu_bos.png)
+
 ---
 
 ## Tiga bab, tiga jenis permainan

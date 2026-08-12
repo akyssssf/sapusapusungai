@@ -161,6 +161,146 @@ static func _petak(tekstur: Texture2D, garis_tengah: float, keterangan: String,
 	return kolom
 
 
+## Siluet bos dengan insang yang menyala -- satu-satunya titik yang bisa dilukai.
+##
+## Ini aturan terpenting seluruh pertarungan, dan aturan yang paling mahal kalau
+## salah dipahami: pemain yang mengira bos bisa ditabrak dari mana saja akan
+## kehilangan ketiga nyawanya sebelum sempat melukainya sekali pun.
+static func siluet_bos(lebar: float = 260.0) -> Control:
+	var kanvas := Control.new()
+	kanvas.custom_minimum_size = Vector2(lebar + 150.0, 124.0)
+
+	var tinggi := lebar * 0.42
+	var tengah := Vector2(lebar * 0.5, 62.0)
+
+	# Badan: lonjong yang melebar di depan, seperti sapu-sapu sungguhan.
+	var badan := Polygon2D.new()
+	var titik := PackedVector2Array()
+	for i in 22:
+		var sudut := TAU * float(i) / 22.0
+		var jari := Vector2(cos(sudut) * lebar * 0.34, sin(sudut) * tinggi * 0.5)
+		# Bagian belakang dipipihkan supaya ekornya terbaca.
+		if cos(sudut) < 0.0:
+			jari.y *= 0.62
+		titik.append(tengah + jari)
+	badan.polygon = titik
+	badan.color = Color(0.29, 0.26, 0.2)
+	kanvas.add_child(badan)
+
+	var ekor := Polygon2D.new()
+	ekor.polygon = PackedVector2Array([
+		tengah + Vector2(-lebar * 0.33, 0.0),
+		tengah + Vector2(-lebar * 0.48, -tinggi * 0.42),
+		tengah + Vector2(-lebar * 0.44, 0.0),
+		tengah + Vector2(-lebar * 0.48, tinggi * 0.42),
+	])
+	ekor.color = Color(0.24, 0.21, 0.16)
+	kanvas.add_child(ekor)
+
+	# INSANG. Satu-satunya bagian yang berwarna terang di seluruh gambar, supaya
+	# mata jatuh ke sana lebih dulu daripada ke bagian mana pun.
+	var insang := Polygon2D.new()
+	var pusat_insang := tengah + Vector2(lebar * 0.11, tinggi * 0.06)
+	var bulat := PackedVector2Array()
+	for i in 16:
+		var sudut := TAU * float(i) / 16.0
+		bulat.append(pusat_insang + Vector2(cos(sudut), sin(sudut)) * 15.0)
+	insang.polygon = bulat
+	insang.color = Color(0.4, 0.95, 1.0)
+	kanvas.add_child(insang)
+
+	var cincin := Line2D.new()
+	cincin.points = bulat + PackedVector2Array([bulat[0]])
+	cincin.width = 3.0
+	cincin.default_color = Color(0.7, 1.0, 1.0, 0.9)
+	kanvas.add_child(cincin)
+
+	var tanda := Label.new()
+	tanda.text = "GIGIT DI SINI\nsaat menyala"
+	# Ditaruh di luar siluetnya, bukan menimpa badan bos -- tulisan di atas
+	# gambar gelap sama sulitnya dibaca dengan gambar di balik tulisan.
+	tanda.position = Vector2(lebar * 0.86, 8.0)
+	tanda.add_theme_font_size_override("font_size", 15)
+	tanda.add_theme_color_override("font_color", Color(0.55, 0.95, 1.0))
+	kanvas.add_child(tanda)
+
+	var garis := Line2D.new()
+	garis.points = PackedVector2Array([pusat_insang + Vector2(12.0, -8.0),
+		Vector2(lebar * 0.84, 24.0)])
+	garis.width = 2.0
+	garis.default_color = Color(0.55, 0.95, 1.0, 0.7)
+	kanvas.add_child(garis)
+
+	return kanvas
+
+
+## Diagram satu serangan bos: apa yang terjadi, dan ke mana pemain harus pergi.
+##
+## Ketiganya sengaja memakai bahasa gambar yang sama -- kotak gelap itu bos,
+## titik kuning itu kamu, panah hijau itu jawabannya. Diagram yang tiap kalinya
+## memakai lambang berbeda memaksa pemain belajar tiga bahasa untuk tiga aturan.
+static func diagram_serangan(jenis: String) -> Control:
+	var kanvas := Control.new()
+	kanvas.custom_minimum_size = Vector2(170.0, 86.0)
+
+	var bos := ColorRect.new()
+	bos.size = Vector2(34.0, 30.0)
+	bos.position = Vector2(6.0, 28.0)
+	bos.color = Color(0.32, 0.28, 0.21)
+	kanvas.add_child(bos)
+
+	var pemain := ColorRect.new()
+	pemain.size = Vector2(13.0, 11.0)
+	pemain.color = Color(0.95, 0.82, 0.35)
+	kanvas.add_child(pemain)
+
+	match jenis:
+		"sedot":
+			# Garis tarikan menuju mulut bos, pemain berenang berlawanan.
+			pemain.position = Vector2(96.0, 38.0)
+			for i in 3:
+				var tarik := Line2D.new()
+				var y := 30.0 + float(i) * 12.0
+				tarik.points = PackedVector2Array([Vector2(92.0, y), Vector2(48.0, y)])
+				tarik.width = 2.0
+				tarik.default_color = Color(1.0, 0.55, 0.4, 0.75)
+				kanvas.add_child(tarik)
+			kanvas.add_child(_panah_jawaban(Vector2(118.0, 44.0), Vector2(46.0, 0.0)))
+		"terjang":
+			# Jalur merah melintang; jawabannya KELUAR dari jalur, bukan lari lurus.
+			var jalur := Line2D.new()
+			jalur.points = PackedVector2Array([Vector2(40.0, 43.0), Vector2(166.0, 43.0)])
+			jalur.width = 12.0
+			jalur.default_color = Color(0.95, 0.3, 0.3, 0.45)
+			kanvas.add_child(jalur)
+			pemain.position = Vector2(104.0, 38.0)
+			kanvas.add_child(_panah_jawaban(Vector2(110.0, 34.0), Vector2(0.0, -26.0)))
+		_:
+			# Hujan sampah menyebar; jawabannya terus bergerak menyelip.
+			for i in 7:
+				var butir := ColorRect.new()
+				butir.size = Vector2(7.0, 7.0)
+				butir.position = Vector2(52.0 + float(i % 4) * 30.0, 18.0 + float(i % 3) * 24.0)
+				butir.color = Color(0.6, 0.55, 0.45, 0.8)
+				kanvas.add_child(butir)
+			pemain.position = Vector2(88.0, 60.0)
+			kanvas.add_child(_panah_jawaban(Vector2(96.0, 62.0), Vector2(44.0, -18.0)))
+	return kanvas
+
+
+static func _panah_jawaban(dari: Vector2, arah: Vector2) -> Line2D:
+	var ujung := dari + arah
+	var n := arah.normalized()
+	var sayap := Vector2(-n.y, n.x) * 7.0
+	var panah := Line2D.new()
+	panah.points = PackedVector2Array([
+		dari, ujung, ujung - n * 11.0 + sayap, ujung, ujung - n * 11.0 - sayap,
+	])
+	panah.width = 3.0
+	panah.default_color = WARNA_BISA
+	return panah
+
+
 ## Denah kecil papan Bab 3: lorong air, tepian, dan ke mana balok didorong.
 static func denah_papan() -> Control:
 	var wadah := VBoxContainer.new()

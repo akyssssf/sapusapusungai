@@ -1,0 +1,75 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/boss_card.gd" id="1_bos"]
+
+[sub_resource type="StyleBoxFlat" id="sb_kartu"]
+bg_color = Color(0.04, 0.06, 0.08, 0.94)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 0.55, 0.36, 0.6)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+content_margin_left = 28.0
+content_margin_top = 20.0
+content_margin_right = 28.0
+content_margin_bottom = 18.0
+
+[node name="BossCard" type="CanvasLayer"]
+script = ExtResource("1_bos")
+
+[node name="Dim" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.02, 0.04, 0.06, 0.72)
+
+[node name="Kotak" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -280.0
+offset_right = 400.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(400, 265)
+mouse_filter = 2
+theme_override_styles/panel = SubResource("sb_kartu")
+
+[node name="Kolom" type="VBoxContainer" parent="Kotak"]
+theme_override_constants/separation = 6
+
+[node name="Judul" type="Label" parent="Kotak/Kolom"]
+theme_override_colors/font_color = Color(1, 0.55, 0.36, 1)
+theme_override_font_sizes/font_size = 38
+text = "INDUK SAPU-SAPU"
+horizontal_alignment = 1
+
+[node name="Anak" type="Label" parent="Kotak/Kolom"]
+theme_override_colors/font_color = Color(1, 1, 1, 0.45)
+theme_override_font_sizes/font_size = 15
+text = "sungainya sudah bersih -- tapi ada yang datang menagih"
+horizontal_alignment = 1
+
+[node name="Isi" type="VBoxContainer" parent="Kotak/Kolom"]
+unique_name_in_owner = true
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="Hitung" type="Label" parent="Kotak/Kolom"]
+unique_name_in_owner = true
+theme_override_colors/font_color = Color(0.7, 0.83, 0.87, 1)
+theme_override_font_sizes/font_size = 16
+text = ""
+horizontal_alignment = 1
