@@ -19,10 +19,18 @@ extends AnimatedSprite2D
 
 ## Nama folder spesies di dalam "assets/aset gemastik/".
 @export var spesies: String = "wader_bintik"
-## Kecepatan animasi berenang saat ikan diam. Ikan yang berenang cepat akan
-## dipercepat oleh pemanggilnya lewat laju().
-@export var fps_renang: float = 10.0
-@export var fps_makan: float = 14.0
+## Kecepatan animasi, bingkai per detik.
+##
+## Ditulis sebagai konstanta, BUKAN properti @export, dan itu bukan kemalasan:
+## SpriteFrames-nya dipakai bersama semua ikan sespesies lewat cache, jadi
+## kecepatan yang disetel per ikan tidak akan pernah bisa berbeda-beda -- yang
+## terakhir memuat akan menimpa yang lain diam-diam. Variasi per ikan tetap ada,
+## tapi lewat speed_scale di laju(), yang memang milik masing-masing node.
+##
+## Bawaan Godot 5 fps, dan itu terlalu lambat: delapan bingkai renang jadi 1,6
+## detik satu kayuhan, sehingga ikannya terlihat melayang alih-alih berenang.
+const FPS_RENANG := 12.0
+const FPS_MAKAN := 15.0
 
 const JUMLAH_RENANG := 8
 const JUMLAH_MAKAN := 6
@@ -63,19 +71,20 @@ static func frames_untuk(nama_spesies: String) -> SpriteFrames:
 	var frames := SpriteFrames.new()
 	frames.remove_animation("default")
 
-	_isi(frames, nama_spesies, RENANG_KANAN, "swim_right", JUMLAH_RENANG, true)
-	_isi(frames, nama_spesies, RENANG_KIRI, "swim_left", JUMLAH_RENANG, true)
-	_isi(frames, nama_spesies, MAKAN_KANAN, "eat_right", JUMLAH_MAKAN, false)
-	_isi(frames, nama_spesies, MAKAN_KIRI, "eat_left", JUMLAH_MAKAN, false)
+	_isi(frames, nama_spesies, RENANG_KANAN, "swim_right", JUMLAH_RENANG, true, FPS_RENANG)
+	_isi(frames, nama_spesies, RENANG_KIRI, "swim_left", JUMLAH_RENANG, true, FPS_RENANG)
+	_isi(frames, nama_spesies, MAKAN_KANAN, "eat_right", JUMLAH_MAKAN, false, FPS_MAKAN)
+	_isi(frames, nama_spesies, MAKAN_KIRI, "eat_left", JUMLAH_MAKAN, false, FPS_MAKAN)
 
 	_cache[nama_spesies] = frames
 	return frames
 
 
 static func _isi(frames: SpriteFrames, nama_spesies: String, animasi: String,
-		folder: String, jumlah: int, berulang: bool) -> void:
+		folder: String, jumlah: int, berulang: bool, fps: float) -> void:
 	frames.add_animation(animasi)
 	frames.set_animation_loop(animasi, berulang)
+	frames.set_animation_speed(animasi, fps)
 	for i in range(1, jumlah + 1):
 		var alamat := "res://assets/aset gemastik/%s/%s/%s_%02d.png" % [
 			nama_spesies, folder, folder, i
@@ -114,6 +123,11 @@ func hadap(ke_kiri: bool) -> void:
 func makan() -> void:
 	_sedang_makan = true
 	_pasang_animasi()
+	# Diulang dari bingkai pertama, bukan dilanjutkan. Pemain yang menelan tiga
+	# sampah beruntun harus melihat TIGA gigitan; kalau animasinya cuma
+	# diteruskan, gigitan kedua dan ketiga tidak terlihat sama sekali.
+	frame = 0
+	speed_scale = 1.0
 
 
 ## Menyesuaikan kecepatan animasi dengan kecepatan renang, 0.0 sampai 1.0.

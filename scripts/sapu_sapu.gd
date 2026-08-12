@@ -138,6 +138,8 @@ func _check_bite() -> void:
 
 	_hit_cooldown_left = hit_cooldown
 
+	_player.makan()
+
 	if _player.size_level < required_size_level:
 		_bounce_player(0.55)
 		# Bunyi logam tanpa kerusakan: pemain langsung paham "belum cukup besar".

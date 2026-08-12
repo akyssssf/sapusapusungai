@@ -188,6 +188,9 @@ func _be_spat_out(player: Node2D) -> void:
 	# add_score(), tidak ada add_growth(). Pemain tidak mendapat apa pun dari
 	# memakan ikan lokal -- itu murni kerugian yang belum kelihatan.
 	GameState.report_local_fish_eaten()
+	# Mulutnya tetap bergerak walau tidak dapat apa-apa. Justru itu yang bikin
+	# perbuatannya terasa: pemain MELIHAT dirinya menelan penghuni sungai.
+	player.makan()
 
 	var away := global_position - player.global_position
 	if away.is_zero_approx():

@@ -318,7 +318,19 @@ func _wiggle_body(delta: float) -> void:
 # --- Pertumbuhan ------------------------------------------------------------
 
 ## Dipanggil dari luar setiap kali ikan berhasil makan sesuatu.
+## Memainkan animasi menggigit sekali.
+##
+## Dipanggil SEMUA yang bisa dimakan atau digigit, bukan dipicu dari dalam
+## add_growth() saja. Alasannya: tidak semua gigitan menumbuhkan ikan. Menggigit
+## sapu-sapu tidak menambah pertumbuhan, dan memakan ikan lokal justru sengaja
+## tidak memberi apa-apa -- tapi keduanya tetap gigitan, dan mulut yang tidak
+## bergerak saat menggigit terlihat seperti animasi yang rusak.
+func makan() -> void:
+	_sprite.makan()
+
+
 func add_growth(amount: float) -> void:
+	makan()
 	if size_level >= max_size_level:
 		return
 
