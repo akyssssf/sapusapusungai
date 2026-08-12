@@ -93,9 +93,9 @@ pun digambar di layar.
 - Tiga balok terpasang, satu di antaranya balok besar
 - **Balok besar TIDAK bergerak dengan satu ikan**; bergerak dengan dua
 - Balok kecil bergerak dengan satu ikan, dan petak asalnya jadi kosong
-- Airnya ikut maju tiap kali balok minggir (6 → 8 petak setelah dorongan pertama)
-- **Kolom 3 tidak bisa langsung dikeluarkan ke atas**, tapi bisa digeser ke kolom 2
-  lalu dikeluarkan dari sana
+- Airnya ikut maju tiap kali balok minggir
+- **Balok kolom 5 tidak bisa langsung dikeluarkan** (terjepit batu atas-bawah), tapi
+  bisa digeser ke kolom 4 lalu dinaikkan dari sana
 - **Papannya benar-benar bisa diselesaikan** dalam 4 dorongan **tanpa Tab sekali pun**,
   dan babnya berakhir begitu air menyentuh mulut sungai (10/10 petak lorong terairi)
 - NPC menyusul pemain menyeberangi papan lewat tepian (sisa 78 px dari tujuan)
@@ -123,7 +123,7 @@ Main **tanpa membaca dokumen ini dulu.**
 
 ## B. Kesulitan
 
-- [ ] Balok kolom 3 (yang harus digeser menyamping dulu): ketemu sendiri, atau bikin buntu?
+- [ ] Balok kolom 5 (yang harus digeser menyamping dulu): ketemu sendiri, atau bikin buntu?
 - [ ] Pernah membuat papan jadi mustahil? Kalau ya, **R** kelihatan sebagai jalan keluar?
 - [ ] 4 dorongan terasa terlalu sedikit? (papannya bisa dibuat lebih besar)
 - [ ] Berapa lama satu ronde? (**catat menitnya**)
