@@ -60,6 +60,8 @@ hilang.
 - **Lima babak cerita**: pembuka, dua jembatan antar bab, ending banjir, dan penutup
 - **Papan instruksi tiap bab**: tujuan, kontrol, apa yang berbahaya, cara mengatasinya
 - **Layar MISI SELESAI** dengan bintang, skor berhitung naik, rekor, dan bab yang terbuka
+- **Jenis sampah terbuka bertahap** — tiap kali ikan naik satu ukuran, satu jenis sampah
+  baru mulai muncul di sungai
 - **Progres tersimpan** ke `user://sapusapusungai.cfg` — format ConfigFile, bisa dibuka
   pakai Notepad
 

@@ -17,8 +17,20 @@ extends Control
 ## layar sebelumnya tidak melompati satu panel penuh.
 @export var kunci_input: float = 0.35
 
-const TEKSTUR_IKAN := preload("res://kenney_fish-pack_2/PNG/Double/fish_green.png")
-const TEKSTUR_GELEMBUNG := preload("res://kenney_fish-pack_2/PNG/Double/bubble_a.png")
+## Spesies yang muncul di latar cutscene kalau panelnya tidak menyebut sendiri.
+const SPESIES_BAWAAN := ["wader_bintik", "seluang", "nilem"]
+
+## Sampah yang hanyut di latar. Gambar sungguhan, bukan segi empat acak seperti
+## dulu -- panel yang bercerita tentang sampah harus memperlihatkan sampah yang
+## sama persis dengan yang dimakan pemain di dalam permainan, kalau tidak
+## ceritanya terbaca sebagai tempat lain.
+const GAMBAR_SAMPAH := [
+	preload("res://assets/environment/plastic_bottle.png"),
+	preload("res://assets/environment/plastic_bag.png"),
+	preload("res://assets/environment/kresek_bag.png"),
+	preload("res://assets/environment/trash_pile.png"),
+	preload("res://assets/environment/wooden_plank.png"),
+]
 
 @onready var _judul: Label = %Judul
 @onready var _teks: Label = %Teks
@@ -37,7 +49,7 @@ var _lock: float = 0.0
 var _selesai_mengetik: bool = false
 
 var _air: Polygon2D
-var _ikan: Array[Sprite2D] = []
+var _ikan: Array[SpriteIkan] = []
 var _sampah: Array[Node2D] = []
 var _waktu: float = 0.0
 
@@ -93,6 +105,7 @@ func _gerakkan_latar(delta: float) -> void:
 		var ikan := _ikan[i]
 		ikan.position.x -= (arus * 0.85 + 12.0 * float(i % 4)) * delta
 		ikan.position.y += sin(_waktu * 1.7 + float(i)) * 22.0 * delta
+		ikan.laju(clampf(arus / 140.0, 0.0, 1.0))
 		if ikan.position.x < -120.0:
 			ikan.position.x = 1400.0
 			ikan.position.y = randf_range(90.0, 640.0)
@@ -150,7 +163,8 @@ func _pasang(panel: Dictionary) -> void:
 	_air.vertex_colors = PackedColorArray([atas, atas, bawah, bawah])
 
 	_bersihkan()
-	_isi_ikan(int(panel.get("ikan", 0)), panel.get("warna_ikan", Color.WHITE))
+	var spesies: Array = panel.get("spesies", SPESIES_BAWAAN)
+	_isi_ikan(int(panel.get("ikan", 0)), panel.get("warna_ikan", Color.WHITE), spesies)
 	_isi_sampah(int(panel.get("sampah", 0)))
 
 	_teks_penuh = String(panel.get("teks", "")).format({"nama": GameState.display_name()})
@@ -183,40 +197,40 @@ func _bersihkan() -> void:
 	_sampah.clear()
 
 
-func _isi_ikan(jumlah: int, warna: Color) -> void:
+func _isi_ikan(jumlah: int, warna: Color, spesies: Array) -> void:
 	for i in jumlah:
-		var ikan := Sprite2D.new()
-		ikan.texture = TEKSTUR_IKAN
-		ikan.modulate = warna
+		var ikan := SpriteIkan.new()
+		ikan.spesies = String(spesies[i % spesies.size()])
+
+		# Warna panel dipakai sebagai SEMBURAN suasana, bukan pengganti warna
+		# ikannya. Dulu modulate diisi penuh karena ikannya cuma siluet Kenney
+		# polos; sekarang sprite-nya punya warna sendiri, dan menimpanya penuh
+		# akan membuang identitas tiap spesies.
+		var jauh := randf()
+		ikan.modulate = Color.WHITE.lerp(warna, 0.45)
 		# Ikan di kejauhan dibuat lebih kecil DAN lebih pudar. Dua isyarat
 		# sekaligus, karena ukuran saja gampang terbaca sebagai "ikan kecil"
 		# alih-alih "ikan jauh".
-		var jauh := randf()
-		ikan.scale = Vector2.ONE * lerpf(0.85, 0.35, jauh)
+		ikan.scale = Vector2.ONE * lerpf(0.22, 0.09, jauh)
 		ikan.modulate.a = lerpf(1.0, 0.3, jauh)
 		ikan.position = Vector2(randf_range(-100.0, 1380.0), randf_range(90.0, 640.0))
-		ikan.flip_h = true
 		_panggung.add_child(ikan)
+		# hadap() baru bisa dipanggil sesudah node masuk pohon, karena _ready()
+		# lah yang memasang SpriteFrames-nya.
+		ikan.hadap(true)
 		_ikan.append(ikan)
 
 
 func _isi_sampah(jumlah: int) -> void:
 	for i in jumlah:
-		var keping := Polygon2D.new()
-		var r := randf_range(11.0, 26.0)
-		# Segi empat miring acak, bukan kotak rapi: sampah sungguhan tidak ada
-		# yang bentuknya seragam, dan keseragaman langsung terbaca sebagai pola.
-		keping.polygon = PackedVector2Array([
-			Vector2(-r, -r * randf_range(0.5, 1.0)),
-			Vector2(r * randf_range(0.6, 1.2), -r * 0.7),
-			Vector2(r, r * randf_range(0.5, 1.0)),
-			Vector2(-r * randf_range(0.7, 1.1), r * 0.8),
-		])
-		keping.color = Color(
-			randf_range(0.32, 0.55), randf_range(0.3, 0.45), randf_range(0.25, 0.4), 0.85
-		)
+		var keping := Sprite2D.new()
+		keping.texture = GAMBAR_SAMPAH[randi() % GAMBAR_SAMPAH.size()]
+		var lebar := float(keping.texture.get_width())
+		if lebar > 0.0:
+			keping.scale = Vector2.ONE * (randf_range(34.0, 66.0) / lebar)
 		keping.position = Vector2(randf_range(-80.0, 1360.0), randf_range(70.0, 660.0))
 		keping.rotation = randf_range(0.0, TAU)
+		keping.modulate = Color(1, 1, 1, randf_range(0.7, 0.95))
 		_panggung.add_child(keping)
 		_sampah.append(keping)
 

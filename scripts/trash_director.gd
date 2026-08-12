@@ -429,6 +429,7 @@ func _spawn(tier: int, point: Vector2, fixed_drift: float = -1.0) -> Node2D:
 	# memakai nilai-nilai ini (memilih bentuk visual, mengacak gerak, dan
 	# menyimpan jalur hanyutnya).
 	trash.tier = tier
+	trash.level_pemain = _player.size_level if _player != null else 1
 	trash.position = point
 	var flow := lerpf(1.0, current_speedup_at_full, pressure())
 	if fixed_drift > 0.0:

@@ -29,6 +29,15 @@ const TIER_DATA := [
 
 @export var tier: Tier = Tier.KECIL
 
+## Ukuran ikan pemain saat sampah ini lahir. Diisi TrashDirector.
+##
+## Dipakai membuka variasi gambar sedikit demi sedikit: tiap kali ikan naik satu
+## ukuran, satu jenis sampah baru mulai muncul di sungai. Kalau semua jenis
+## tampil sejak menit pertama, keragamannya habis sebelum pemain sempat
+## memperhatikannya -- dan naik ukuran tidak mengubah apa pun yang terlihat
+## selain angka di pojok layar.
+@export var level_pemain: int = 1
+
 @export_group("Hanyut")
 ## Arus Brantas mengalir ke kiri. Angka acak per butir supaya arusnya tidak
 ## terlihat seperti satu ban berjalan yang kaku.
@@ -105,7 +114,10 @@ func _apply_tier() -> void:
 	# Hanya bentuk yang sesuai ukurannya yang ditampilkan; dua sisanya cuma
 	# ikut menumpang di scene supaya tidak perlu tiga file .tscn terpisah.
 	var pilihan: Array = GAMBAR_PER_TINGKAT[tier]
-	_gambar.texture = pilihan[randi() % pilihan.size()]
+	# Level 1 cuma jenis pertama, level 2 dua jenis, dan seterusnya sampai
+	# daftarnya habis.
+	var terbuka: int = clampi(level_pemain, 1, pilihan.size())
+	_gambar.texture = pilihan[randi() % terbuka]
 	# Skala dihitung dari radius tabrakannya, bukan angka tetap. Dengan begitu
 	# yang dilihat pemain selalu sebesar yang benar-benar bisa menabraknya --
 	# sampah yang tampak lebih kecil daripada hitboxnya terasa curang.

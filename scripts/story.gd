@@ -76,11 +76,13 @@ const CUTSCENES := {
 				"teks": "Ciliwung jauh lebih padat.\nDan di sini aku tidak sendirian --\nmasih ada ikan lain yang bertahan hidup.",
 				"air_atas": Color(0.19, 0.27, 0.26), "air_bawah": Color(0.05, 0.1, 0.12),
 				"ikan": 7, "warna_ikan": Color(0.55, 0.78, 0.85), "sampah": 16, "arus": 30.0,
+				"spesies": ["seluang", "nilem", "kancra", "gabus", "baung"],
 			},
 			{
 				"teks": "Mereka bukan sampah, {nama}.\nSekali pun jangan.",
 				"air_atas": Color(0.2, 0.3, 0.3), "air_bawah": Color(0.06, 0.12, 0.14),
 				"ikan": 4, "warna_ikan": Color(0.55, 0.78, 0.85), "sampah": 10, "arus": 26.0,
+				"spesies": ["seluang", "nilem", "kancra"],
 				"getar": true,
 			},
 		],
@@ -93,6 +95,7 @@ const CUTSCENES := {
 				"teks": "Ciliwung bersih juga.\nSampahnya habis, ikannya masih ada.",
 				"air_atas": Color(0.32, 0.56, 0.6), "air_bawah": Color(0.12, 0.3, 0.34),
 				"ikan": 8, "warna_ikan": Color(0.6, 0.85, 0.9), "sampah": 0, "arus": 80.0,
+				"spesies": ["seluang", "nilem", "kancra", "gabus", "baung"],
 			},
 			{
 				"teks": "Tapi jauh di hulu, ada kali yang airnya tetap tidak jalan.\nBersih, dan tetap mati.",
@@ -168,6 +171,7 @@ const CUTSCENES := {
 				"teks": "Satu: sungai yang kelihatan bersih belum tentu hidup.\nKalau penghuninya habis, yang tersisa cuma air.",
 				"air_atas": Color(0.3, 0.52, 0.56), "air_bawah": Color(0.11, 0.28, 0.34),
 				"ikan": 6, "warna_ikan": Color(0.6, 0.85, 0.9), "sampah": 0, "arus": 90.0,
+				"spesies": ["seluang", "nilem", "kancra", "gabus"],
 			},
 			{
 				"teks": "Dua: membersihkan sampah saja tidak cukup.\nAir juga harus punya jalan.",

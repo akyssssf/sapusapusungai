@@ -7,8 +7,8 @@ extends Camera2D
 ##      "kena serang" terasa punya bobot, bukan cuma angka yang berubah.
 
 ## Zoom di bawah 1.0 berarti kamera menjauh (pandangan makin luas).
-@export var zoom_at_level_1: float = 1.0
-@export var zoom_at_max_level: float = 0.9
+@export var zoom_at_level_1: float = 1.3
+@export var zoom_at_max_level: float = 1.05
 ## Kecepatan zoom menyusul nilai targetnya. Sengaja pelan supaya perubahan
 ## ukuran terasa mulus, bukan menyentak tiap kali naik level.
 @export var zoom_response: float = 2.5
