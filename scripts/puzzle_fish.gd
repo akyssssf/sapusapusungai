@@ -85,13 +85,19 @@ func _physics_process(delta: float) -> void:
 
 	# Arus deras berlaku untuk KEDUA ikan, yang dikendalikan maupun yang
 	# ditinggal. Air tidak memilih siapa yang sedang dipegang pemain.
-	var simpan := velocity
 	velocity += arus
 	move_and_slide()
-	# Kecepatan sendiri dikembalikan setelah bergerak, supaya dorongan arus tidak
-	# menumpuk jadi percepatan tiap frame. Tanpa ini, ikan yang berdiri diam
-	# selama tiga detik akan melesat seperti ditembakkan.
-	velocity = simpan
+	# Arusnya DIKURANGI kembali sesudah bergerak, bukan kecepatan lama yang
+	# dikembalikan mentah-mentah.
+	#
+	# Bedanya besar dan inilah sumber rasa nyangkut yang dilaporkan:
+	# move_and_slide() memangkas komponen kecepatan yang menabrak permukaan
+	# supaya ikan MELUNCUR menyusurinya. Kalau kecepatan lama dipasang balik,
+	# pangkasan itu ikut terbuang -- tiap frame ikan mendorong penuh ke dalam
+	# tebing, tidak pernah meluncur, dan terasa persis seperti tersangkut.
+	# Mengurangi arusnya saja tetap membuang tumpukan percepatan, tapi hasil
+	# tabrakannya dipertahankan.
+	velocity -= arus
 
 	_keep_inside_bounds()
 	_animate(delta)

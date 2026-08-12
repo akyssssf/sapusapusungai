@@ -23,6 +23,15 @@ extends StaticBody2D
 ## Dan yang paling penting: sumbatannya BERGESER selama didorong, dan MELOROT
 ## BALIK begitu dilepas. Pemain melihat hasil kerjanya bergerak tiap detik,
 ## bukan menatap cincin yang mengisi sendiri.
+##
+## Badannya menghalangi AIR, bukan ikan. Sebelumnya benar-benar padat terhadap
+## ikan, dan itu salah dua kali: menekan lingkaran sebesar 86 px membuat ikan
+## MELUNCUR menyusuri lengkungannya lalu terlepas sendiri (rasa licin),
+## sementara pemain yang terus menahan tombol malah menggasak dinding tanpa maju
+## (rasa nyangkut). Padahal ikan wader seukuran itu memang muat menyelinap di
+## sela-sela batang bambu -- yang tidak muat lewat justru airnya. Jadi badannya
+## sekarang ada di lapisan fisika sendiri ("sumbatan") yang tidak dipedulikan
+## ikan. Tebing sungai tetap padat seperti biasa.
 
 signal cleared
 
@@ -43,16 +52,22 @@ signal cleared
 ## Tenaga total yang harus dilampaui sebelum sumbatan mau bergerak sama sekali.
 ## Sengaja di atas tenaga satu ikan mana pun -- di sinilah "butuh berdua" itu
 ## dipaksakan oleh fisikanya, bukan oleh pemeriksaan jumlah.
-@export var ambang_gerak: float = 1.6
+##
+## Angkanya diturunkan dari 1,6 setelah dilaporkan terasa berat. Dengan 1,6,
+## dorongan yang melenceng 60 derajat menghasilkan tepat 1,6 -- yaitu NOL
+## kemajuan. Pemain yang merasa sudah mendorong tapi tidak melihat apa pun
+## bergerak akan menyimpulkan mekaniknya rusak, bukan bahwa sudutnya kurang
+## tepat. Sekarang dorongan miring tetap maju, cuma pelan.
+@export var ambang_gerak: float = 1.5
 ## Sumbangan ikan yang sedang menahan (mengganjal) di sisi yang benar.
-@export var tenaga_ganjal: float = 0.8
+@export var tenaga_ganjal: float = 1.0
 ## Sumbangan maksimum ikan yang sedang berenang menekan.
-@export var tenaga_dorong: float = 1.0
+@export var tenaga_dorong: float = 1.2
 ## Kecepatan geser saat didorong sekuat-kuatnya, piksel per detik.
-@export var kecepatan_geser: float = 78.0
-## Kecepatan melorot balik saat tenaganya kurang. Lebih lambat daripada
+@export var kecepatan_geser: float = 120.0
+## Kecepatan melorot balik saat tenaganya kurang. Jauh lebih lambat daripada
 ## mendorong: kesalahan sesaat tidak boleh menghapus kerja setengah menit.
-@export var kecepatan_lorot: float = 34.0
+@export var kecepatan_lorot: float = 20.0
 
 @export_group("Rasa")
 @export var color_idle: Color = Color(0.42, 0.33, 0.19)

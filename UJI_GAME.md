@@ -77,6 +77,12 @@ pilih bab / menu utama).
 - Papan instruksi ketiga bab lengkap: tujuan, kontrol, bahaya, dan cara mengatasinya
 - Cutscene penutup 6 panel dan berakhir menyebut sungai sungguhan
 
+**Kemenangan bab**
+- **Airnya membersih DULU (3,2 dtk), panel MISI SELESAI baru muncul sesudahnya** —
+  tombol dikunci selama pertunjukan supaya tidak bisa dilewati tanpa sengaja
+- **Menang di bab 1/2 sekarang lewat rantai cerita**, jadi cutscene antar-bab benar-benar
+  muncul (dulu melompat langsung ke berkas peta dan melewatinya)
+
 **MISI SELESAI**
 - Bintang naik bertahap: 900→1, 1500→2, 2000→3 (Bab 1)
 - "REKOR BARU" hanya muncul saat skornya benar-benar melewati rekor lama

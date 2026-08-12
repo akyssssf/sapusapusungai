@@ -74,6 +74,7 @@ switch_fish={
 2d_physics/layer_3="hazard"
 2d_physics/layer_4="neutral_fish"
 2d_physics/layer_5="world"
+2d_physics/layer_6="sumbatan"
 
 [physics]
 

@@ -23,7 +23,7 @@ tangan pemain tetap sama: parkir dua ikan, tunggu cincin penuh. Tidak ada yang b
 | **Ikan yang dipegang** | harus terus **berenang menekan** ke arah dorong. Lepas tombol = berhenti mendorong. |
 | **Ikan yang ditinggal** | otomatis **mengganjal** — tapi hanya kalau posisinya di sisi **seberang** arah dorong. Salah sisi, dia tidak membantu sama sekali. |
 
-Ganjalan saja (0,8) maupun dorongan saja (maksimal 1,0) sama-sama di bawah ambang 1,6.
+Ganjalan saja (1,0) maupun dorongan saja (maksimal 1,2) sama-sama di bawah ambang 1,5.
 Butuh keduanya. "Harus berdua" jadi dipaksakan oleh fisikanya, bukan oleh hitungan.
 
 Dan yang paling terasa: **sumbatannya bergeser di layar selama didorong**, ikut miring,
@@ -31,6 +31,20 @@ memercikkan air — lalu **melorot balik** begitu dilepas. Ada bayangan samar di
 tujuan supaya pemain tahu sampai mana harus mendorong.
 
 Tiap sumbatan punya arah dorong berbeda, jadi tempat mengganjalnya juga berpindah-pindah.
+
+### Perbaikan "nyangkut, berat, licin"
+
+Tiga keluhan itu ternyata tiga sebab terpisah:
+
+| Keluhan | Sebab | Perbaikan |
+|---|---|---|
+| **licin** | Menekan badan sumbatan bulat 86 px membuat ikan meluncur menyusuri lengkungannya lalu terlepas sendiri | Badan sumbatan pindah ke lapisan fisika sendiri — **ikan wader muat menyelinap di sela bambu**; yang tidak muat lewat justru airnya. Tebing sungai tetap padat. |
+| **nyangkut** | Kode arus mengembalikan kecepatan lama mentah-mentah sesudah `move_and_slide()`, membuang pangkasan tabrakan — ikan terus menggasak tebing tanpa pernah meluncur | Arusnya yang dikurangi, bukan kecepatannya yang dipasang balik |
+| **berat** | Ambang 1,6 membuat dorongan melenceng 60° menghasilkan **nol** kemajuan — terlihat seperti mekanik yang rusak | Ambang turun ke 1,5 dan kecepatan geser naik 78 → 120 px/dtk. Dorongan miring tetap maju, cuma pelan. |
+
+Terukur sekarang: dorongan lurus **120 px/dtk** (satu sumbatan ~1,4 detik), dorongan
+melenceng 55° **32 px/dtk** — masih maju, jadi pemain tahu dia sudah benar tapi kurang
+tepat sudutnya.
 
 ## Aturan urutan (masih berlaku, di atas mekanik dorong)
 
@@ -48,7 +62,10 @@ di tiap sumbatan membuatnya teka-teki, bukan jebakan. Tamat tanpa salah urutan =
 **Mekanik dorong**
 - Satu ikan mendorong sekuatnya: **tidak menggerakkan sama sekali**
 - Ganjalan saja: juga tidak menggerakkan
-- Ganjal + dorong aktif: bergeser 78 px dan ikut berputar 7,3 derajat
+- Ganjal + dorong aktif: bergeser dan ikut berputar
+- **Ikan tidak lagi bertabrakan dengan badan sumbatan** (tebing tetap padat)
+- Menekan lurus ke sumbatan: **tidak meluncur menyamping sama sekali** (0 px)
+- Dorongan miring 55 derajat tetap maju, dan dorongan lurus 3,7x lebih cepat
 - Berhenti mendorong: melorot balik **bertahap**, bukan hangus total
 - Mendorong dari sisi yang salah: tidak menambah kemajuan
 - Didorong terus: akhirnya lepas
@@ -99,7 +116,9 @@ Main **tanpa membaca dokumen ini dulu**.
 
 ## C. Rasa mendorong (yang paling saya ingin tahu)
 
-- [ ] **Terasa berat?** Sumbatan yang bergeser tiap kali Anda menekan — cukup memuaskan?
+- [ ] **Masih nyangkut atau licin?** (ini yang paling perlu dipastikan hilang)
+- [ ] Ikan yang bisa menyelinap menembus bambu: terasa wajar, atau malah aneh?
+- [ ] **Masih terasa berat?** Satu sumbatan sekarang ~1,4 detik dorongan lurus.
 - [ ] Melorot balik saat dilepas: bikin tegang, atau bikin frustrasi?
 - [ ] Aturan "ganjal dari sisi seberang" ketemu sendiri, atau harus baca papan dulu?
 - [ ] 2,2 detik dorongan penuh per sumbatan: pas, kependekan, atau kepanjangan?
@@ -121,8 +140,8 @@ Main **tanpa membaca dokumen ini dulu**.
 | Lama bonus habis | Map3Jeroan | `bonus_fade_seconds` (24 dtk) |
 | **Arah sumbatan didorong** | tiap Sumbatan | `arah_dorong` |
 | **Sejauh apa sampai lepas** | tiap Sumbatan | `jarak_lepas` (170 / 150 / 170) |
-| **Seberat apa** | tiap Sumbatan | `ambang_gerak` (1,6), `tenaga_ganjal` (0,8), `tenaga_dorong` (1,0) |
-| **Cepat didorong / melorot** | tiap Sumbatan | `kecepatan_geser` (78), `kecepatan_lorot` (34) |
+| **Seberat apa** | tiap Sumbatan | `ambang_gerak` (1,5), `tenaga_ganjal` (1,0), `tenaga_dorong` (1,2) |
+| **Cepat didorong / melorot** | tiap Sumbatan | `kecepatan_geser` (120), `kecepatan_lorot` (20) |
 | Jarak ikan masih terhitung | tiap Sumbatan | `radius_dorong` (165) |
 | Warna penanda ramalan | tiap Sumbatan | `warna_aman` / `warna_deras` |
 | Gerbang progres | Map3Jeroan | `requires_map2`, `bypass_progress_gate` |

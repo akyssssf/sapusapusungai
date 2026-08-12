@@ -56,6 +56,12 @@ enum Phase { MEMBURU, MEMBERSIHKAN, BOS, MENANG, KALAH, BANJIR, TERKUNCI }
 ## Node opsional pengawas ekosistem. Hanya Map 2 yang mengisinya.
 @export var ecosystem_path: NodePath
 
+@export_group("Kemenangan")
+## Lama pertunjukan air membersih sebelum panel MISI SELESAI muncul.
+## Sedikit lebih panjang daripada animasi airnya sendiri (2,6 dtk) supaya ada
+## sekejap hening untuk memandangi hasilnya sebelum angka menutupi layar.
+@export var jeda_air_membersih: float = 3.2
+
 @export_group("Bos")
 ## Kosong berarti map ini tidak punya bos; sungai bersih langsung berarti menang.
 @export var boss_scene: PackedScene
@@ -193,10 +199,20 @@ func _unhandled_input(event: InputEvent) -> void:
 		Phase.TERKUNCI:
 			SceneRouter.go_to_chapter_select()
 		Phase.MENANG:
-			if next_map_path.is_empty():
-				SceneRouter.go_to_chapter_select()
+			# Lewat go_to_chapter(), BUKAN go_to(next_map_path).
+			#
+			# Inilah sebab cutscene tidak pernah muncul sesudah menang: go_to()
+			# melompat langsung ke berkas petanya, melewati rantai
+			# "cerita -> papan instruksi -> peta" seluruhnya. Cutscene baru
+			# terlihat kalau pemain kebetulan masuk lewat layar pilih bab,
+			# karena kartu di sana memang memanggil go_to_chapter().
+			#
+			# Nomor babnya diturunkan dari map_index, bukan dari next_map_path,
+			# supaya rantainya tetap satu-satunya jalan masuk ke bab mana pun.
+			if _bab_berikutnya() > 0:
+				SceneRouter.go_to_chapter(_bab_berikutnya())
 			else:
-				SceneRouter.go_to(next_map_path)
+				SceneRouter.go_to_chapter_select()
 		Phase.KALAH:
 			SceneRouter.restart_chapter()
 
@@ -228,7 +244,10 @@ func _enter_phase(next_phase: int) -> void:
 			# dari mata: pemain sudah tegang duluan sebelum tahu kenapa.
 			AudioManager.play_music(AudioManager.MUSIC_BOSS, 1.0)
 		Phase.MENANG:
-			_restart_lock = 1.0
+			# Tombol dikunci selama seluruh pertunjukan air, bukan cuma sedetik.
+			# Kalau tidak, pemain bisa menekan Enter di tengah transformasi dan
+			# melompat ke bab berikutnya tanpa pernah melihat hasil kerjanya.
+			_restart_lock = jeda_air_membersih + 0.8
 			_player.freeze()
 			_pause.enabled = false
 			# Urutannya penting: rekor diperiksa SEBELUM babnya ditandai tamat,
@@ -239,7 +258,19 @@ func _enter_phase(next_phase: int) -> void:
 			AudioManager.play("win", 2.0, 1.0, 0.0)
 			AudioManager.play_music(music if music != null else AudioManager.MUSIC_RIVER, 2.0)
 			_hud.hide_boss_bar()
+
+			# AIRNYA DULU, PANELNYA BELAKANGAN.
+			#
+			# Sebelumnya keduanya muncul di frame yang sama, dan panel MISI
+			# SELESAI langsung menutupi sungai yang sedang berubah jernih --
+			# hadiah visualnya ada, tapi tidak pernah sempat dilihat siapa pun.
+			# Sekarang pemain menonton sungainya membersih dulu, baru angkanya
+			# datang.
 			_bersihkan_air()
+			_hud.show_banner(win_title, jeda_air_membersih)
+			await get_tree().create_timer(jeda_air_membersih).timeout
+			if not is_instance_valid(self) or not is_inside_tree():
+				return
 			_tampilkan_misi_selesai(rekor_baru)
 		Phase.KALAH:
 			_restart_lock = 1.0
@@ -310,10 +341,20 @@ func _tampilkan_misi_selesai(rekor_baru: bool) -> void:
 	layar.tampilkan(map_index, GameState.score, rekor_baru, GameState.last_perfect, _win_hint())
 
 
+## Nomor bab sesudah ini, atau 0 kalau ini bab terakhir. Ditanyakan ke
+## GameState.CHAPTERS, bukan ditebak dari next_map_path, supaya cuma ada SATU
+## tempat di seluruh game yang tahu urutan bab.
+func _bab_berikutnya() -> int:
+	var berikutnya := map_index + 1
+	return berikutnya if not GameState.chapter_data(berikutnya).is_empty() else 0
+
+
 func _win_hint() -> String:
-	if next_map_path.is_empty():
+	var berikutnya := _bab_berikutnya()
+	if berikutnya <= 0:
 		return "Enter  pilih bab"
-	return "Enter  lanjut ke %s          Esc  pilih bab" % next_map_label
+	var judul := String(GameState.chapter_data(berikutnya).get("title", next_map_label))
+	return "Enter  lanjut ke %s          Esc  pilih bab" % judul
 
 
 func _on_surge_started(duration: float) -> void:
