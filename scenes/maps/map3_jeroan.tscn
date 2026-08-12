@@ -12,10 +12,12 @@ script = ExtResource("1_m3")
 bypass_progress_gate = true
 
 [node name="Latar" type="Polygon2D" parent="."]
+z_index = -30
 polygon = PackedVector2Array(0, 0, 1600, 0, 1600, 900, 0, 900)
 vertex_colors = PackedColorArray(0.145, 0.235, 0.263, 1, 0.145, 0.235, 0.263, 1, 0.055, 0.114, 0.137, 1, 0.055, 0.114, 0.137, 1)
 
 [node name="Arus" type="CPUParticles2D" parent="."]
+z_index = -20
 position = Vector2(800, 450)
 amount = 70
 lifetime = 8.0

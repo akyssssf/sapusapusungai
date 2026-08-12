@@ -29,6 +29,13 @@ extends Node2D
 enum Isi { KOSONG, BATU, KECIL, BESAR }
 enum Phase { BERMAIN, SELESAI, TERKUNCI }
 
+## Urutan gambar, dari paling belakang ke paling depan. Dikumpulkan di satu
+## tempat supaya "apa menutupi apa" bisa dibaca sekali lihat, alih-alih tersebar
+## sebagai angka ajaib di lima fungsi berbeda.
+const Z_LANTAI := -10   ## kisi petak, batu, genangan air
+const Z_BALOK := 0
+const Z_IKAN := 5
+
 ## Denah papan.
 ##   #  batu, tidak bisa didorong dan menahan air
 ##   .  air bisa lewat
@@ -114,6 +121,9 @@ func _ready() -> void:
 	GameState.begin_run(3, scene_file_path)
 	_fish = [_fish_a, _fish_b]
 
+	for ikan in _fish:
+		ikan.z_index = Z_IKAN
+
 	_baris = PETA.size()
 	_kolom = String(PETA[0]).length()
 	var kotak_air := Rect2(titik_awal, Vector2(float(_kolom), float(_baris)) * lebar_petak)
@@ -166,8 +176,17 @@ func _di_dalam(p: Vector2i) -> bool:
 
 func _bangun_papan() -> void:
 	_air = Node2D.new()
+	# Urutan gambar dipatok lewat z_index, BUKAN lewat urutan anak.
+	#
+	# Sebelumnya papan ini dipindah ke indeks 0 supaya "paling belakang" -- dan
+	# justru itu bugnya: indeks 0 digambar PALING DULU, jadi latar sungai yang
+	# ada di indeks 1 menimpanya. Seluruh kisi, batu, dan genangan air jadi tak
+	# terlihat, dan pemain cuma melihat balok melayang di ruang kosong.
+	#
+	# Urutan anak juga rapuh: menambah satu node di scene bisa menggeser
+	# segalanya. z_index menyatakan maksudnya langsung dan tidak bisa bergeser.
+	_air.z_index = Z_LANTAI
 	add_child(_air)
-	move_child(_air, 0)
 
 	var batu_induk := StaticBody2D.new()
 	batu_induk.collision_layer = 16
@@ -261,6 +280,7 @@ func _pasang_lantai(p: Vector2i, batu: bool) -> void:
 func _pasang_balok(p: Vector2i, besar: bool) -> void:
 	var balok := StaticBody2D.new()
 	balok.set_script(BALOK)
+	balok.z_index = Z_BALOK
 	balok.position = tengah_petak(p)
 	add_child(balok)
 	balok.pasang(lebar_petak, besar)
