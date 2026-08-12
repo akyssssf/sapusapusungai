@@ -185,13 +185,20 @@ func _free_point_away_from_player() -> Vector2:
 ## Bobot peluang [kecil, sedang, besar] menurut level ikan sekarang.
 func _tier_weights() -> Array:
 	var level: int = _player.size_level if _player != null else 1
+	# Porsinya dipatok ke berapa banyak yang BISA DIMAKAN pemain saat ini, bukan
+	# sekadar dinaikkan seiring level. Keluhan yang mendasarinya: di ukuran 4
+	# layar penuh sampah besar yang belum bisa disentuh, jadi sungai terasa
+	# seperti ladang ranjau -- padahal cuma satu tingkat yang masih terlarang.
 	if level <= 2:
-		# Ikan masih kecil: makanan berlimpah, tapi ranjau sudah ada sejak awal.
-		return [62, 33, 5]
+		# Cuma sampah kecil yang bisa dimakan. Porsi yang lain ditekan, kalau
+		# tidak pemain baru menghabiskan menit pertamanya cuma menghindar.
+		return [74, 22, 4]
 	if level <= 4:
-		# Sampah sedang sudah bisa dimakan, jadi porsi ranjau besar dinaikkan.
-		return [40, 34, 26]
-	return [38, 30, 32]
+		# Kecil dan sedang sudah bisa dimakan: dua dari tiga tingkat aman, dan
+		# perbandingannya harus terasa begitu juga.
+		return [44, 42, 14]
+	# Semuanya bisa dimakan; sekarang porsinya boleh merata.
+	return [34, 33, 33]
 
 
 func _random_tier() -> int:

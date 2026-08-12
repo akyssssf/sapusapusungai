@@ -11,6 +11,8 @@ extends CanvasLayer
 ##   - Bar pertumbuhan          -> lewat _process(). Nilainya pecahan dan
 ##     berubah terus, jadi memang cocok dibaca tiap frame.
 
+const TrashScript := preload("res://scripts/trash.gd")
+
 @onready var _score_label: Label = %ScoreLabel
 @onready var _size_label: Label = %SizeLabel
 @onready var _growth_bar: ProgressBar = %GrowthBar
@@ -24,6 +26,20 @@ extends CanvasLayer
 @onready var _overlay: Control = %Overlay
 @onready var _overlay_title: Label = %OverlayTitle
 @onready var _overlay_hint: Label = %OverlayHint
+
+## Satu contoh gambar per tingkat sampah, untuk penunjuk "sudah bisa dimakan".
+## Sengaja gambar yang sama dengan yang hanyut di sungai -- penunjuk yang
+## memakai ikon lain memaksa pemain menerjemahkan dua bahasa sekaligus.
+const CONTOH_SAMPAH := [
+	preload("res://assets/environment/plastic_bottle.png"),
+	preload("res://assets/environment/kresek_bag.png"),
+	preload("res://assets/environment/trash_pile.png"),
+]
+
+## Petak penunjuk, satu per tingkat sampah.
+var _petak_makan: Array[TextureRect] = []
+var _bingkai_makan: Array[Panel] = []
+var _label_makan: Label = null
 
 var _player: Node = null
 var _banner_left: float = 0.0
@@ -50,7 +66,92 @@ func _ready() -> void:
 		marker.visible = false
 	_boss_panel.visible = false
 	_overlay.visible = false
+	_bangun_penunjuk_makan()
 	set_process(false)
+
+
+## Penunjuk "sekarang kamu bisa makan yang mana", ala Feeding Frenzy.
+##
+## Feeding Frenzy tidak pernah menggambar cincin di sekeliling ikan yang belum
+## bisa dimakan. Yang dipakainya cuma dua hal: ukuran benda di layar, dan satu
+## penunjuk kecil di tepi layar yang memperlihatkan sampai mana mulutmu sampai.
+## Itu jauh lebih baik daripada lencana per benda, karena pemain belajar
+## MEMBANDINGKAN UKURAN -- kemampuan yang terus berguna sepanjang permainan --
+## alih-alih belajar mencari cincin.
+##
+## Ukuran tiap petak di sini mengikuti radius aslinya, jadi penunjuk ini
+## sekaligus mengajarkan seberapa besar tiap tingkat sampah sebenarnya.
+func _bangun_penunjuk_makan() -> void:
+	if get_node_or_null("PenunjukMakan") != null:
+		return
+
+	var wadah := Control.new()
+	wadah.name = "PenunjukMakan"
+	wadah.position = Vector2(26.0, 198.0)
+	wadah.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(wadah)
+
+	_label_makan = Label.new()
+	_label_makan.text = "MUAT DI MULUTMU"
+	_label_makan.add_theme_font_size_override("font_size", 14)
+	_label_makan.add_theme_color_override("font_color", Color(1, 1, 1, 0.6))
+	_label_makan.add_theme_color_override("font_outline_color", Color(0.02, 0.05, 0.07, 0.9))
+	_label_makan.add_theme_constant_override("outline_size", 6)
+	wadah.add_child(_label_makan)
+
+	var kiri := 0.0
+	for i in CONTOH_SAMPAH.size():
+		# Petaknya menaik ukurannya mengikuti radius sampah aslinya, jadi
+		# penunjuk ini sekaligus mengajarkan seberapa besar tiap tingkat.
+		var sisi: float = 30.0 + float(TrashScript.TIER_DATA[i]["radius"]) * 0.95
+
+		# Bingkai gelap di belakang tiap petak. Tanpa ini gambarnya hilang
+		# ditelan latar sungai yang juga gelap -- percobaan pertama penunjuk ini
+		# gagal justru karena itu, bukan karena ukurannya.
+		var bingkai := Panel.new()
+		bingkai.size = Vector2(sisi, sisi)
+		bingkai.position = Vector2(kiri, 24.0 + (76.0 - sisi))
+		bingkai.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		wadah.add_child(bingkai)
+		_bingkai_makan.append(bingkai)
+
+		var gambar := TextureRect.new()
+		gambar.texture = CONTOH_SAMPAH[i]
+		gambar.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		gambar.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		gambar.size = Vector2(sisi - 12.0, sisi - 12.0)
+		gambar.position = Vector2(6.0, 6.0)
+		gambar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		bingkai.add_child(gambar)
+		_petak_makan.append(gambar)
+
+		kiri += sisi + 8.0
+
+	_segarkan_penunjuk_makan(1)
+
+
+func _segarkan_penunjuk_makan(level: int) -> void:
+	for i in _petak_makan.size():
+		var bisa: bool = level >= int(TrashScript.TIER_DATA[i]["butuh_level"])
+
+		# Yang belum bisa dimakan tidak disembunyikan, cuma diredupkan. Pemain
+		# harus tetap melihat bahwa masih ADA yang lebih besar -- itu yang
+		# membuat naik ukuran terasa punya tujuan.
+		_petak_makan[i].modulate = Color(1, 1, 1, 1) if bisa else Color(0.5, 0.55, 0.6, 0.4)
+
+		# Warna bingkai yang membawa jawabannya, bukan kepekatan gambarnya.
+		# Meredupkan saja tidak cukup: gambar sampah memang sudah gelap, jadi
+		# "redup" dan "terang" nyaris tidak terbedakan di atas air yang gelap.
+		var kotak := StyleBoxFlat.new()
+		kotak.set_corner_radius_all(8)
+		kotak.set_border_width_all(3)
+		if bisa:
+			kotak.bg_color = Color(0.11, 0.24, 0.18, 0.85)
+			kotak.border_color = Color(0.45, 0.92, 0.62, 0.95)
+		else:
+			kotak.bg_color = Color(0.06, 0.08, 0.1, 0.72)
+			kotak.border_color = Color(1, 1, 1, 0.14)
+		_bingkai_makan[i].add_theme_stylebox_override("panel", kotak)
 
 
 func bind_player(player: Node) -> void:
@@ -144,6 +245,7 @@ func _on_score_changed(new_score: int) -> void:
 
 func _on_size_level_changed(new_level: int) -> void:
 	_size_label.text = "Ukuran: %d" % new_level
+	_segarkan_penunjuk_makan(new_level)
 
 
 func _on_health_changed(current: int, _maximum: int) -> void:

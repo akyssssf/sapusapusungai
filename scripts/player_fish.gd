@@ -77,8 +77,21 @@ enum ControlScheme {
 @export var growth_per_level: float = 350.0
 ## Skala sprite di level 1 dan di level maksimum. Nilainya kecil karena
 ## teksturnya diambil dari folder PNG/Double (128 px) supaya tidak pecah.
-@export var scale_at_level_1: float = 0.115
-@export var scale_at_max_level: float = 0.27
+## Faktor UKURAN ikan, bukan skala gambarnya. Dipakai hitbox, kamera, dan
+## gambar sekaligus -- jadi angkanya harus tetap berarti "seberapa besar ikan
+## ini", bukan "seberapa besar berkas gambarnya".
+##
+## Ini pernah salah dan akibatnya halus sekali: waktu aset ikan diganti dari
+## 128 px ke 512 px, angka ini ikut dikecilkan supaya gambarnya pas -- dan
+## radius tabrakan ikut menyusut empat kali lipat. Ikannya terlihat normal tapi
+## mulutnya nyaris tidak menyentuh apa pun. Sejak itu ukuran dan gambar dipisah:
+## skala gambar punya angkanya sendiri di bawah.
+@export var scale_at_level_1: float = 0.45
+@export var scale_at_max_level: float = 1.05
+## Pengali khusus GAMBAR, untuk menyesuaikan ukuran berkas sumbernya saja.
+## Aset ikan 512 px; 0,25 mengembalikannya ke ukuran layar yang sama seperti
+## saat masih memakai sprite 128 px.
+@export var skala_gambar: float = 0.25
 ## Radius tabrakan saat skala visual tepat 1.0 (~40% lebar tekstur).
 @export var base_radius: float = 50.0
 
@@ -380,7 +393,7 @@ func _apply_size(animated: bool) -> void:
 	camera.set_size_progress(size_progress())
 
 	if not animated:
-		_sprite.scale = Vector2(s, s)
+		_sprite.scale = Vector2(s, s) * skala_gambar
 		return
 
 	# Tween lama dimatikan dulu supaya dua suapan beruntun tidak menganimasikan
@@ -388,7 +401,7 @@ func _apply_size(animated: bool) -> void:
 	if _scale_tween != null and _scale_tween.is_running():
 		_scale_tween.kill()
 	_scale_tween = create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	_scale_tween.tween_property(_sprite, "scale", Vector2(s, s), 0.18)
+	_scale_tween.tween_property(_sprite, "scale", Vector2(s, s) * skala_gambar, 0.18)
 
 
 # --- Nyawa ------------------------------------------------------------------

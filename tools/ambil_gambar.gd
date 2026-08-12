@@ -10,7 +10,7 @@ extends Node
 
 const SASARAN := [
 	["res://scenes/maps/map3_jeroan.tscn", "user://bab3.png", 2.5],
-	["res://scenes/maps/map1_brantas.tscn", "user://bab1.png", 8.0],
+	["res://scenes/maps/map1_brantas.tscn", "user://bab1.png", 9.0, 4],
 	["res://scenes/maps/map2_ciliwung.tscn", "user://bab2.png", 8.0],
 	["res://scenes/ui/main_menu.tscn", "user://menu.png", 1.5],
 ]
@@ -22,6 +22,11 @@ func _ready() -> void:
 	for s in SASARAN:
 		var scene: Node = load(s[0]).instantiate()
 		add_child(scene)
+		# Beberapa gambar sengaja diambil saat ikan sudah besar, supaya
+		# perbandingan ukurannya kelihatan.
+		if s.size() > 3:
+			await get_tree().process_frame
+			_besarkan(scene, int(s[3]))
 		await get_tree().create_timer(s[2]).timeout
 		await RenderingServer.frame_post_draw
 		var gambar: Image = get_viewport().get_texture().get_image()
@@ -32,3 +37,12 @@ func _ready() -> void:
 		await get_tree().process_frame
 
 	get_tree().quit(0)
+
+
+func _besarkan(peta: Node, level: int) -> void:
+	var ikan: Node = peta.get_node_or_null("PlayerFish")
+	if ikan == null:
+		return
+	ikan.size_level = level
+	ikan._apply_size(false)
+	ikan.size_level_changed.emit(level)

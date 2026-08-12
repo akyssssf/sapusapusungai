@@ -24,6 +24,10 @@ dan satu kesimpulan yang cuma bisa didapat dengan memainkan ketiganya.
 | **2** | Sungai Ciliwung, Jakarta | Sampahnya lebih padat — dan sekarang ada ikan lokal yang **bukan makanan**. |
 | **3** | Kali Jeroan, Madiun | Puzzle dorong balok. Singkirkan sumbatan bambu supaya airnya bisa tembus lagi. |
 
+Aturannya seperti Feeding Frenzy: **kalau sampahnya lebih kecil dari mulutmu, telan.**
+Tidak ada cincin atau lencana apa pun — ukuran benda di layar yang menjawabnya, dan HUD
+memperlihatkan contoh apa saja yang sudah muat.
+
 Bab 2 punya ambang tersembunyi yang tidak pernah ditampilkan sebagai angka. Kalau
 terlalu banyak ikan lokal termakan, airnya menggelap, nada musiknya turun, dan sungai
 yang **sudah kamu bersihkan** tetap berakhir banjir. Itu bukan bug — itu isi pesannya.

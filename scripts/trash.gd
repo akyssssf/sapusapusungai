@@ -7,6 +7,14 @@ extends Area2D
 ## Itulah sumber ketegangannya: sungai penuh makanan sekaligus penuh ranjau,
 ## dan ranjau hari ini adalah makanan sepuluh detik lagi.
 ##
+## TIDAK ADA LAGI CINCIN MERAH di sekeliling sampah yang belum bisa dimakan.
+## Cincin itu dulu perlu karena ketiga ukurannya terlalu mirip di layar, jadi
+## pemain tidak punya cara lain menilainya. Tapi menempelkan lencana ke sebuah
+## benda untuk menjelaskan ukurannya berarti mengaku ukurannya sendiri gagal
+## bicara. Sekarang ukurannya yang dibedakan tajam, dan HUD memperlihatkan
+## contoh apa saja yang muat di mulut ikan saat ini -- persis seperti Feeding
+## Frenzy, yang tidak pernah menggambar cincin apa pun.
+##
 ## Kenapa SAMPAH yang mendeteksi pemain, bukan sebaliknya? Karena tiap benda
 ## nanti punya reaksi berbeda (ikan lokal dimuntahkan, sapu-sapu butuh beberapa
 ## gigitan). Menaruh reaksi di masing-masing benda jauh lebih rapi daripada satu
@@ -21,10 +29,24 @@ enum Tier { KECIL, SEDANG, BESAR }
 ##   skor        : poin saat dimakan
 ##   tumbuh      : poin pertumbuhan saat dimakan
 ##   radius      : radius tabrakan
+##
+## RADIUSNYA SENGAJA DIBUAT JAUH BERBEDA, dan itu satu-satunya cara pemain tahu
+## mana yang bisa dimakan. Aturan Feeding Frenzy cuma satu: kalau bendanya lebih
+## kecil dari mulutmu, telan. Jadi ukuran bukan hiasan -- ukuran ADALAH
+## antarmukanya. Dulu ketiganya cuma 15/26/40 dan mirip semua di layar, sehingga
+## pemain terpaksa membaca cincin merah yang ditempel di atasnya.
+##
+## Sekarang 14/30/48, dan angkanya dipatok ke ikan pemain, bukan dipilih
+## sembarangan:
+##   ikan level 1, garis tengah  45 px  ->  cuma melewati sampah kecil (28 px)
+##   ikan level 3, garis tengah  75 px  ->  sudah melewati sampah sedang (60 px)
+##   ikan level 5, garis tengah 105 px  ->  akhirnya melewati sampah besar (96 px)
+## Jadi "aku sudah lebih besar dari benda itu" selalu benar secara harfiah, dan
+## bisa dinilai pemain hanya dengan melihat.
 const TIER_DATA := [
-	{"butuh_level": 1, "skor": 10, "tumbuh": 20.0, "radius": 15.0},
-	{"butuh_level": 3, "skor": 30, "tumbuh": 45.0, "radius": 26.0},
-	{"butuh_level": 5, "skor": 70, "tumbuh": 90.0, "radius": 40.0},
+	{"butuh_level": 1, "skor": 10, "tumbuh": 20.0, "radius": 14.0},
+	{"butuh_level": 3, "skor": 30, "tumbuh": 45.0, "radius": 30.0},
+	{"butuh_level": 5, "skor": 70, "tumbuh": 90.0, "radius": 48.0},
 ]
 
 @export var tier: Tier = Tier.KECIL
@@ -87,7 +109,6 @@ const GAMBAR_PER_TINGKAT := [
 
 @onready var _visual: Node2D = $Visual
 @onready var _gambar: Sprite2D = $Visual/Gambar
-@onready var _danger_ring: Node2D = $Visual/DangerRing
 @onready var _collision: CollisionShape2D = $CollisionShape2D
 @onready var _burst: CPUParticles2D = $Burst
 
@@ -99,11 +120,6 @@ func _ready() -> void:
 
 	body_entered.connect(_on_body_entered)
 
-	# Tanda bahaya cukup diperbarui saat ukuran ikan berubah, bukan tiap frame.
-	_player = get_tree().get_first_node_in_group("player")
-	if _player != null:
-		_player.size_level_changed.connect(_on_player_size_changed)
-	_refresh_danger_ring()
 
 
 func _apply_tier() -> void:
@@ -123,9 +139,12 @@ func _apply_tier() -> void:
 	# sampah yang tampak lebih kecil daripada hitboxnya terasa curang.
 	var lebar: float = float(_gambar.texture.get_width())
 	if lebar > 0.0:
-		_gambar.scale = Vector2.ONE * (float(data["radius"]) * 2.35 / lebar)
+		# Gambarnya sedikit lebih besar daripada hitbox-nya (1,15x garis tengah),
+		# bukan jauh lebih besar. Sampah yang tampak lebih besar daripada
+		# tabrakannya terasa curang saat dihindari; yang tampak lebih kecil
+		# terasa curang saat menabrak.
+		_gambar.scale = Vector2.ONE * (float(data["radius"]) * 2.3 / lebar)
 
-	_danger_ring.scale = Vector2.ONE * (data["radius"] / 30.0)
 	_burst.amount = 8 + tier * 6
 	_burst.scale_amount_min = 1.5 + tier
 	_burst.scale_amount_max = 3.0 + tier * 2
@@ -150,10 +169,6 @@ func _process(delta: float) -> void:
 	_bob_phase += delta * _bob_speed
 	position.y = _base_y + sin(_bob_phase) * _bob_amplitude
 	_visual.rotation += _spin_speed * delta
-
-	if _danger_ring.visible:
-		# Denyut pelan supaya mata pemain tertarik ke sampah berbahaya.
-		_danger_ring.modulate.a = 0.62 + 0.28 * sin(_bob_phase * 3.0)
 
 	if position.x < -despawn_margin:
 		queue_free()
@@ -222,18 +237,3 @@ func _hurt(player: Node2D) -> void:
 	var tween := create_tween()
 	tween.tween_property(_visual, "modulate", Color(1.6, 0.7, 0.7), 0.05)
 	tween.tween_property(_visual, "modulate", Color.WHITE, 0.3)
-
-
-# --- Tanda bahaya -----------------------------------------------------------
-
-func _on_player_size_changed(_new_level: int) -> void:
-	_refresh_danger_ring()
-
-
-func _refresh_danger_ring() -> void:
-	if _player == null:
-		_danger_ring.visible = false
-		return
-	# Cincin merah hanya muncul selama sampah ini masih terlalu besar. Begitu
-	# ikan cukup besar, cincinnya hilang -- itu sinyal "sekarang boleh dimakan".
-	_danger_ring.visible = _player.size_level < int(TIER_DATA[tier]["butuh_level"])
