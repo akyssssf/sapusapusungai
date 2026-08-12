@@ -65,19 +65,22 @@ polygon = PackedVector2Array(0, 900, 1600, 900, 1600, 808.7, 1560, 801.5, 1520, 
 [node name="Obstacles" type="Node2D" parent="."]
 
 [node name="SumbatanHilir" parent="Obstacles" instance=ExtResource("3_bam")]
-position = Vector2(520, 430)
-push_radius = 200.0
-hold_time = 1.6
+position = Vector2(520, 470)
+arah_dorong = Vector2(-0.3, 1)
+jarak_lepas = 170.0
+radius_dorong = 165.0
 
 [node name="SumbatanTengah" parent="Obstacles" instance=ExtResource("3_bam")]
-position = Vector2(960, 370)
-push_radius = 200.0
-hold_time = 2.0
+position = Vector2(1050, 420)
+arah_dorong = Vector2(-0.25, 1)
+jarak_lepas = 150.0
+radius_dorong = 165.0
 
 [node name="SumbatanHulu" parent="Obstacles" instance=ExtResource("3_bam")]
-position = Vector2(1340, 570)
-push_radius = 200.0
-hold_time = 2.4
+position = Vector2(1420, 450)
+arah_dorong = Vector2(-0.25, -1)
+jarak_lepas = 170.0
+radius_dorong = 165.0
 
 [node name="FishA" parent="." instance=ExtResource("2_fish")]
 position = Vector2(240, 380)

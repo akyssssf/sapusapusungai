@@ -132,7 +132,7 @@ func _ready() -> void:
 	_set_active(0)
 
 	_hud.set_progress(0, _total_obstacles)
-	_hud.show_banner("Sungai sudah bersih, tapi airnya tetap tertahan.\nDorong sumbatan bambu -- BERDUA, dan perhatikan penandanya.", 5.5)
+	_hud.show_banner("Sungai sudah bersih, tapi airnya tetap tertahan.\nSatu ikan MENGGANJAL dari sisi seberang, satunya MENDORONG terus.", 5.5)
 	AudioManager.play_music(AudioManager.MUSIC_RIVER, 1.8)
 
 
@@ -177,6 +177,21 @@ func _setup_obstacles() -> void:
 ## hilir di antara yang tersisa. Sisanya selalu aman, karena dia sendiri yang
 ## menahan air mereka.
 func _segarkan_ramalan() -> void:
+	# Sumbatan yang sudah benar-benar dihapus Godot DIBUANG dari daftar di sini.
+	#
+	# Ini bukan kerapian, ini perbaikan crash. Sumbatan yang pecah baru
+	# di-queue_free() sekitar sedetik setelah terbuka, jadi daftar ini sempat
+	# memegang acuan ke objek mati. Mengoper acuan mati itu ke fungsi yang
+	# parameternya bertipe Node membuat Godot menolaknya DI BATAS PEMANGGILAN --
+	# sebelum baris is_instance_valid() di dalam fungsinya sempat jalan. Jadi
+	# penjaga di dalam fungsi tidak akan pernah cukup; yang mati harus tidak
+	# pernah dioper sejak awal.
+	var hidup: Array[Node] = []
+	for o in _obstacles:
+		if is_instance_valid(o):
+			hidup.append(o)
+	_obstacles = hidup
+
 	var paling_hilir: Node = null
 	for o in _obstacles:
 		if _masih_tertutup(o):
@@ -377,7 +392,9 @@ func _selesaikan() -> void:
 	AudioManager.play("river_flows", 2.0, 1.0, 0.0)
 
 	await get_tree().create_timer(ending_delay).timeout
-	if not is_inside_tree():
+	# is_instance_valid(self) diperiksa DULU: kalau node ini sudah dibuang
+	# selama jeda, memanggil is_inside_tree() padanya sendiri sudah error.
+	if not is_instance_valid(self) or not is_inside_tree():
 		return
 
 	GameState.last_perfect = sempurna

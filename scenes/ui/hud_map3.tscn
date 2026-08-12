@@ -102,7 +102,7 @@ theme_override_colors/font_color = Color(1, 1, 1, 0.5)
 theme_override_colors/font_outline_color = Color(0.02, 0.06, 0.09, 0.7)
 theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 17
-text = "WASD / panah berenang  -  Tab atau klik ikan untuk ganti kendali  -  ikan yang ditinggal hanyut pelan terbawa arus"
+text = "WASD / panah DORONG terus  -  Tab ganti ikan  -  ikan yang ditinggal mengganjal dari sisi seberang"
 
 [node name="Overlay" type="Control" parent="."]
 unique_name_in_owner = true

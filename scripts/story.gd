@@ -30,6 +30,7 @@ const PEMBUKA := "pembuka"
 const ANTARA_1_2 := "antara_1_2"
 const ANTARA_2_3 := "antara_2_3"
 const PENUTUP := "penutup"
+const BANJIR := "banjir"
 
 const CUTSCENES := {
 	PEMBUKA: {
@@ -107,6 +108,45 @@ const CUTSCENES := {
 				"teks": "Aku sudah coba mendorongnya sendirian.\nTidak bergerak sedikit pun.\n\nJadi kali ini aku tidak datang sendiri.",
 				"air_atas": Color(0.24, 0.38, 0.4), "air_bawah": Color(0.08, 0.16, 0.19),
 				"ikan": 2, "warna_ikan": Color(0.85, 0.92, 0.65), "sampah": 3, "arus": 12.0,
+			},
+		],
+	},
+
+	# Cutscene ini SATU-SATUNYA yang boleh diputar berulang kali, karena dia
+	# bukan babak cerita melainkan akibat. Pemain yang mengulang kesalahan yang
+	# sama berhak melihat akibat yang sama -- kalau ditandai "sudah ditonton",
+	# kolaps kedua jadi terasa lebih murah daripada yang pertama, dan justru
+	# itulah yang tidak boleh terjadi pada pesan bab ini.
+	BANJIR: {
+		"judul": "SUNGAI CILIWUNG, BEBERAPA MINGGU KEMUDIAN",
+		"panel": [
+			{
+				"teks": "Sampahnya habis.\nAku benar-benar membersihkan semuanya.",
+				"air_atas": Color(0.3, 0.5, 0.52), "air_bawah": Color(0.1, 0.26, 0.3),
+				"ikan": 1, "warna_ikan": Color(0.85, 0.92, 0.6), "sampah": 0, "arus": 60.0,
+			},
+			{
+				"teks": "Tapi airnya sepi.\nTidak ada lagi yang berenang selain aku.",
+				"air_atas": Color(0.2, 0.3, 0.32), "air_bawah": Color(0.06, 0.13, 0.16),
+				"ikan": 1, "warna_ikan": Color(0.7, 0.78, 0.5), "sampah": 0, "arus": 26.0,
+			},
+			{
+				"teks": "Ikan-ikan kecil itu yang memakan lumut di batu.\nLumutnya tumbuh tanpa henti sekarang,\ndan akarnya menahan air.",
+				"air_atas": Color(0.17, 0.26, 0.2), "air_bawah": Color(0.05, 0.11, 0.09),
+				"ikan": 0, "warna_ikan": Color(0.6, 0.7, 0.4), "sampah": 4, "arus": 10.0,
+				"getar": true,
+			},
+			{
+				"teks": "Hujan turun tiga hari.\nAirnya tidak punya jalan, dan tidak ada lagi\nyang menahannya selain rumah orang.",
+				"air_atas": Color(0.14, 0.16, 0.22), "air_bawah": Color(0.04, 0.05, 0.09),
+				"ikan": 0, "warna_ikan": Color(0.5, 0.55, 0.4), "sampah": 12, "arus": 165.0,
+				"getar": true,
+			},
+			{
+				"teks": "Aku menang melawan sampahnya, {nama}.\n\nDan tetap kalah.",
+				"air_atas": Color(0.11, 0.13, 0.18), "air_bawah": Color(0.03, 0.04, 0.07),
+				"ikan": 1, "warna_ikan": Color(0.45, 0.5, 0.38), "sampah": 8, "arus": 120.0,
+				"getar": true,
 			},
 		],
 	},
@@ -222,15 +262,16 @@ const BRIEFINGS := {
 		],
 		"bahaya": [
 			"Tidak ada yang bisa membunuhmu di sini. Yang bisa gagal cuma rencanamu.",
-			"Ikan yang kamu tinggalkan hanyut pelan terbawa arus ke hilir.",
+			"Sumbatan MELOROT BALIK kalau kamu berhenti mendorong. Berat sekali.",
 			"Membuka sumbatan yang salah duluan melepas ARUS DERAS yang menyeret kedua ikanmu.",
 		],
 		"cara": [
-			"Satu ikan tidak akan bisa menggeser sumbatan. Butuh DUA, dekat sumbatan yang sama, pada saat yang sama.",
-			"Tahan posisi berdua sampai cincin progresnya penuh.",
-			"Tiap sumbatan punya penanda: AMAN berarti air yang lepas masih ditahan sumbatan di hilirnya.",
-			"DERAS berarti tidak ada lagi yang menahan -- seluruh kolam akan menghambur begitu dibuka.",
-			"Jadi kerjakan dari HULU (kanan) dulu, dan sisakan yang paling hilir untuk terakhir.",
+			"Sumbatan ini didorong, bukan ditunggui. Kamu harus MENAHAN tombol arah menekan ke sana.",
+			"Ikan yang kamu tinggalkan otomatis MENGGANJAL -- tapi hanya kalau posisinya di sisi seberang arah dorong.",
+			"Jadi: parkir satu ikan di sisi seberang sebagai ganjalan, lalu pegang ikan satunya dan dorong terus.",
+			"Bayangan samar menunjukkan sampai mana sumbatan harus digeser.",
+			"Penanda AMAN berarti air yang lepas masih ditahan sumbatan di hilirnya; DERAS berarti tidak ada lagi yang menahan.",
+			"Kerjakan dari HULU (kanan) dulu, sisakan yang paling hilir untuk terakhir.",
 		],
 	},
 }

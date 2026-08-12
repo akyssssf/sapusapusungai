@@ -239,6 +239,7 @@ func _enter_phase(next_phase: int) -> void:
 			AudioManager.play("win", 2.0, 1.0, 0.0)
 			AudioManager.play_music(music if music != null else AudioManager.MUSIC_RIVER, 2.0)
 			_hud.hide_boss_bar()
+			_bersihkan_air()
 			_tampilkan_misi_selesai(rekor_baru)
 		Phase.KALAH:
 			_restart_lock = 1.0
@@ -257,15 +258,46 @@ func _enter_phase(next_phase: int) -> void:
 			GameState.last_ending = GameState.Ending.BANJIR
 			_hud.hide_boss_bar()
 			_camera.shake(30.0)
-			# Layar banjir punya scene sendiri. Jeda sebentar dulu supaya pemain
-			# sempat melihat air yang sudah pekat -- itu jawaban atas pertanyaan
-			# "kenapa dari tadi makin gelap".
+			# Jeda sebentar dulu supaya pemain sempat melihat air yang sudah
+			# pekat -- itu jawaban atas pertanyaan "kenapa dari tadi makin gelap".
 			await get_tree().create_timer(1.6).timeout
-			if is_inside_tree():
-				SceneRouter.go_to("res://scenes/ui/game_over.tscn")
+			if not is_instance_valid(self) or not is_inside_tree():
+				return
+			# Cutscene banjir dulu, BARU layar hasil. Urutan ini yang membuat
+			# kolapsnya bisa dimengerti: tanpa cerita di antaranya, pemain cuma
+			# melihat layar kalah setelah berhasil membersihkan semua sampah,
+			# dan itu terbaca sebagai game yang tidak adil -- bukan sebagai
+			# pesan bahwa bersih saja tidak cukup.
+			#
+			# Cutscene ini SENGAJA tidak diingat sebagai "sudah ditonton":
+			# akibat yang sama harus muncul lagi kalau kesalahannya diulang.
+			GameState.story_seen.erase(Story.BANJIR)
+			SceneRouter.play_cutscene(Story.BANJIR, "res://scenes/ui/game_over.tscn")
 
 
 const MISI_SELESAI_SCENE := preload("res://scenes/ui/mission_complete.tscn")
+const AIR_MEMBERSIH := preload("res://scripts/water_clearing.gd")
+
+
+## Airnya membersih di depan mata pemain begitu sungainya dinyatakan bersih.
+##
+## Node pembersihnya dibuat di sini lalu dititipkan ke peta, bukan disiapkan di
+## tiap scene peta. Kalau disiapkan di scene, tiap peta baru harus ingat
+## memasangnya -- dan yang harus diingat manusia cepat atau lambat terlupakan.
+##
+## Ketiga node yang disentuh (air, berkas cahaya, gelembung) semuanya OPSIONAL:
+## peta yang tidak punya salah satunya tetap jalan, cuma lapisan itu yang tidak
+## ikut berubah. Jadi menambah peta baru tidak pernah bisa membuat baris ini
+## gagal, seburuk apa pun susunan node-nya.
+func _bersihkan_air() -> void:
+	var pembersih := AIR_MEMBERSIH.new()
+	add_child(pembersih)
+	pembersih.mulai(
+		get_node_or_null("Water") as Polygon2D,
+		get_node_or_null("LightShafts") as Node2D,
+		get_node_or_null("Bubbles") as Node2D,
+		world_size
+	)
 
 
 ## Layar MISI SELESAI dipasang sebagai tempelan di atas peta, bukan lewat pindah
