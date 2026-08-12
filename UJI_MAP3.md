@@ -62,6 +62,21 @@ itu dia menggeser apa pun yang kebetulan dilewatinya saat menyusul — dan di So
 dorongan tak diniatkan bisa mematikan papan, lalu pemain menyalahkan dirinya sendiri
 untuk langkah yang bukan dia yang lakukan.
 
+## Tampilan: petaknya masih ada, kotak-kotaknya tidak
+
+Kisi penuh membuat sungainya terbaca seperti kertas milimeter. Logika petaknya tetap —
+itu yang bikin titik dorongnya jelas — tapi gambarnya sekarang organik:
+
+| | |
+|---|---|
+| **Sudut kisi diacak, bukan tiap petak** | Dua petak bertetangga berbagi sudut yang sama persis, jadi acakannya menyatu tanpa celah. Kalau tiap petak diacak sendiri, sambungannya robek di mana-mana. |
+| **Garis cuma di batas wilayah** | Kisi penuh menggambar 4 garis per petak sampai seluruh papan jadi jala. Sekarang garis hanya muncul di batas batu–air, seperti garis pantai. |
+| **Balok jadi ikatan bambu** | Beberapa batang dengan panjang dan kemiringan berbeda, diikat dua tali. Tabrakannya tetap kotak sepetak. |
+| **Tepian dihias** | Rumput air dan batu kecil, semuanya miring — mata butuh sesuatu yang tidak sejajar kisi untuk berhenti melihat kisinya. Lorong dibiarkan bersih. |
+| **Bingkai petak tujuan** | Muncul hanya saat dorongan mungkin, di petak tempat balok akan mendarat. Pengganti kisi sebagai penunjuk jarak satu dorongan. |
+
+Tepi luar papan sengaja **tidak** diacak, supaya batas petanya tetap rapi.
+
 ## Kenapa dibangun ulang (lagi)
 
 Dua versi sebelumnya menyuruh pemain **menahan** sesuatu — menahan posisi, lalu menahan
@@ -103,6 +118,10 @@ pun digambar di layar.
 - NPC **tidak** mendorong balok yang bukan sedang dibantu (dulu bisa: 5 dorongan, sekarang 4)
 - Kedua ikan lahir di tepian, bukan di dalam lorong yang sedang mereka buka
 - Papan tergambar DI DEPAN latar (dulu tersembunyi di belakangnya)
+- Sudut kisi teracak dipakai BERSAMA petak bertetangga — tidak ada celah robek
+- 36 sudut bagian dalam teracak, 0 masih lurus; tepi luar papan tetap rapi
+- Logika petak tidak ikut berubah: tengah petak masih di kisi rapi, papan tetap
+  bisa ditamatkan dalam 4 dorongan sesudah tampilannya dirombak
 - Balok tidak bisa didorong ke mulut sungai (papan tidak bisa dibuat mustahil tanpa sadar)
 - Balok tidak bisa didorong ke petak yang sedang ditempati ikan
 

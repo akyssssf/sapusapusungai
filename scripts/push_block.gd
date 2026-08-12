@@ -20,25 +20,23 @@ var besar: bool = false
 ## Sedang meluncur ke petak berikutnya; selama ini dia tidak menerima dorongan.
 var sibuk: bool = false
 
-const WARNA_KECIL := Color(0.55, 0.43, 0.24)
-const WARNA_KECIL_TEPI := Color(0.72, 0.58, 0.33)
-const WARNA_BESAR := Color(0.38, 0.31, 0.2)
-const WARNA_BESAR_TEPI := Color(0.62, 0.52, 0.3)
 ## Muka yang siap didorong. Kuning = kurang ikan, biru = tenaga sudah cukup.
 const WARNA_MUKA_KURANG := Color(0.98, 0.76, 0.29)
 const WARNA_MUKA_CUKUP := Color(0.35, 0.87, 0.98)
 
 var _ukuran: float = 120.0
-var _badan: Polygon2D
-var _tepi: Line2D
+var _petak: float = 140.0
+var _badan: Node2D
 var _lencana: Label
 var _muka: Line2D
 var _panah: Line2D
-var _serat: Node2D
+## Bingkai samar di petak tujuan -- pengganti kisi yang dulu digambar penuh.
+var _bayang: Line2D
 
 
 func pasang(petak: float, itu_besar: bool) -> void:
 	besar = itu_besar
+	_petak = petak
 	# Balok besar sengaja hampir memenuhi petaknya. Beratnya harus terbaca dari
 	# siluetnya saja, sebelum pemain sempat mencoba mendorongnya sendirian.
 	_ukuran = petak * (0.86 if besar else 0.72)
@@ -47,25 +45,10 @@ func pasang(petak: float, itu_besar: bool) -> void:
 	collision_mask = 0
 
 	var setengah := _ukuran * 0.5
-	var kotak := PackedVector2Array([
-		Vector2(-setengah, -setengah), Vector2(setengah, -setengah),
-		Vector2(setengah, setengah), Vector2(-setengah, setengah),
-	])
 
-	_badan = Polygon2D.new()
-	_badan.polygon = kotak
-	_badan.color = WARNA_BESAR if besar else WARNA_KECIL
+	_badan = Node2D.new()
 	add_child(_badan)
-
-	_serat = Node2D.new()
-	add_child(_serat)
-	_gambar_serat(setengah)
-
-	_tepi = Line2D.new()
-	_tepi.points = kotak + PackedVector2Array([kotak[0]])
-	_tepi.width = 5.0 if besar else 4.0
-	_tepi.default_color = WARNA_BESAR_TEPI if besar else WARNA_KECIL_TEPI
-	add_child(_tepi)
+	_gambar_ikatan(setengah)
 
 	var bentuk := RectangleShape2D.new()
 	bentuk.size = Vector2(_ukuran, _ukuran)
@@ -76,6 +59,8 @@ func pasang(petak: float, itu_besar: bool) -> void:
 	# Muka yang menyala: satu garis tebal menempel di sisi yang bisa didorong.
 	_muka = Line2D.new()
 	_muka.width = 11.0
+	_muka.begin_cap_mode = Line2D.LINE_CAP_ROUND
+	_muka.end_cap_mode = Line2D.LINE_CAP_ROUND
 	_muka.visible = false
 	add_child(_muka)
 
@@ -83,6 +68,21 @@ func pasang(petak: float, itu_besar: bool) -> void:
 	_panah.width = 6.0
 	_panah.visible = false
 	add_child(_panah)
+
+	# Bingkai petak tujuan.
+	#
+	# Kisi penuh sudah dihapus karena membuat sungainya terlihat seperti kertas
+	# milimeter. Tapi pemain tetap perlu tahu SEJAUH APA satu dorongan
+	# memindahkan balok -- jadi petaknya ditunjukkan hanya saat dibutuhkan, di
+	# tempat yang memang sedang dilihat pemain.
+	var b := _petak * 0.42
+	_bayang = Line2D.new()
+	_bayang.points = PackedVector2Array([
+		Vector2(-b, -b), Vector2(b, -b), Vector2(b, b), Vector2(-b, b), Vector2(-b, -b),
+	])
+	_bayang.width = 3.0
+	_bayang.visible = false
+	add_child(_bayang)
 
 	if besar:
 		# Balok besar diberi label "2 IKAN" secara harfiah. Isyarat visual saja
@@ -100,21 +100,66 @@ func pasang(petak: float, itu_besar: bool) -> void:
 		add_child(_lencana)
 
 
-## Beberapa garis miring supaya baloknya terbaca sebagai IKATAN BAMBU, bukan
-## sebagai kotak polos. Digambar acak-tetap dari ukurannya, bukan dari randf(),
-## supaya semua balok tetap konsisten tiap kali peta dimuat ulang.
-func _gambar_serat(setengah: float) -> void:
-	for i in 4:
-		var t := (float(i) + 0.5) / 4.0
-		var garis := Line2D.new()
-		var y := lerpf(-setengah, setengah, t)
-		garis.points = PackedVector2Array([
-			Vector2(-setengah * 0.92, y - setengah * 0.1),
-			Vector2(setengah * 0.92, y + setengah * 0.1),
+## Ikatan batang bambu, bukan kotak polos.
+##
+## Bentuk tabrakannya tetap kotak sepetak -- itu yang membuat dorongannya
+## terbaca dan tidak licin. Tapi yang DILIHAT pemain tidak harus ikut kotak.
+## Batang yang panjangnya beda-beda dan sedikit miring membuat baloknya terbaca
+## sebagai tumpukan bambu yang terseret arus, bukan sebagai petak papan catur.
+##
+## Miringnya diambil dari ukuran dan nomor batang, bukan dari randf(), supaya
+## semua balok tampak konsisten tiap kali papan dimuat ulang.
+func _gambar_ikatan(setengah: float) -> void:
+	var jumlah := 6 if besar else 5
+	var warna_batang := [
+		Color(0.46, 0.37, 0.2), Color(0.55, 0.45, 0.25), Color(0.38, 0.31, 0.17),
+	]
+	if besar:
+		warna_batang = [
+			Color(0.34, 0.28, 0.17), Color(0.42, 0.35, 0.21), Color(0.28, 0.23, 0.14),
+		]
+
+	for i in jumlah:
+		var t := (float(i) + 0.5) / float(jumlah)
+		var y := lerpf(-setengah * 0.86, setengah * 0.86, t)
+		# Batang paling tengah dibuat paling panjang, yang di tepi lebih pendek --
+		# siluetnya jadi membulat seperti ikatan yang diikat di tengah.
+		var panjang := setengah * lerpf(0.72, 1.0, sin(t * PI))
+		var miring := deg_to_rad(lerpf(-9.0, 9.0, fmod(float(i) * 0.37, 1.0)))
+		var arah := Vector2.RIGHT.rotated(miring)
+		var tebal := setengah * (0.2 if besar else 0.18)
+
+		var batang := Line2D.new()
+		batang.points = PackedVector2Array([
+			Vector2(0.0, y) - arah * panjang, Vector2(0.0, y) + arah * panjang,
 		])
-		garis.width = 3.0
-		garis.default_color = Color(0, 0, 0, 0.16)
-		_serat.add_child(garis)
+		batang.width = tebal * 2.0
+		batang.begin_cap_mode = Line2D.LINE_CAP_ROUND
+		batang.end_cap_mode = Line2D.LINE_CAP_ROUND
+		batang.default_color = warna_batang[i % warna_batang.size()]
+		_badan.add_child(batang)
+
+		# Satu garis tipis di punggung batang: buku-buku bambu.
+		var buku := Line2D.new()
+		buku.points = PackedVector2Array([
+			Vector2(0.0, y - tebal * 0.35) - arah * panjang * 0.8,
+			Vector2(0.0, y - tebal * 0.35) + arah * panjang * 0.8,
+		])
+		buku.width = 2.0
+		buku.default_color = Color(1, 1, 1, 0.1)
+		_badan.add_child(buku)
+
+	# Dua tali pengikat melintang. Inilah yang membuat tumpukan batang terbaca
+	# sebagai SATU benda yang bisa didorong, bukan sebagai beberapa batang lepas.
+	for sisi in [-1.0, 1.0]:
+		var tali := Line2D.new()
+		tali.points = PackedVector2Array([
+			Vector2(setengah * 0.42 * sisi, -setengah * 0.98),
+			Vector2(setengah * 0.42 * sisi, setengah * 0.98),
+		])
+		tali.width = setengah * 0.13
+		tali.default_color = Color(0.24, 0.2, 0.12)
+		_badan.add_child(tali)
 
 
 ## Dipanggil wasit tiap frame. arah = arah dorong yang sedang mungkin
@@ -123,6 +168,7 @@ func sorot_muka(arah: Vector2i, cukup: bool) -> void:
 	if arah == Vector2i.ZERO or sibuk:
 		_muka.visible = false
 		_panah.visible = false
+		_bayang.visible = false
 		return
 
 	var d := Vector2(arah)
@@ -146,12 +192,18 @@ func sorot_muka(arah: Vector2i, cukup: bool) -> void:
 	_panah.default_color = _muka.default_color
 	_panah.visible = true
 
+	_bayang.position = d * _petak
+	_bayang.default_color = _muka.default_color
+	_bayang.default_color.a = 0.3
+	_bayang.visible = true
+
 
 ## Meluncur ke petak berikutnya. Wasit sudah memastikan tujuannya kosong.
 func geser_ke(tujuan: Vector2, lama: float) -> void:
 	sibuk = true
 	_muka.visible = false
 	_panah.visible = false
+	_bayang.visible = false
 	AudioManager.play("bamboo_break", -6.0, 0.7, 0.05)
 
 	var jalan := create_tween()

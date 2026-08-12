@@ -32,9 +32,18 @@ enum Phase { BERMAIN, SELESAI, TERKUNCI }
 ## Urutan gambar, dari paling belakang ke paling depan. Dikumpulkan di satu
 ## tempat supaya "apa menutupi apa" bisa dibaca sekali lihat, alih-alih tersebar
 ## sebagai angka ajaib di lima fungsi berbeda.
-const Z_LANTAI := -10   ## kisi petak, batu, genangan air
+const Z_LANTAI := -10   ## dasar sungai, batu, genangan air, hiasan
 const Z_BALOK := 0
 const Z_IKAN := 5
+
+## Jenis permukaan satu petak, dipakai menggambar batas antar wilayah.
+const JENIS_LUAR := 0
+const JENIS_BATU := 1
+const JENIS_TEPIAN := 2
+const JENIS_LORONG := 3
+
+const TEKSTUR_RUMPUT := preload("res://kenney_fish-pack_2/PNG/Double/seaweed_green_a.png")
+const TEKSTUR_BATU := preload("res://kenney_fish-pack_2/PNG/Double/rock_a.png")
 
 ## Denah papan.
 ##   #  batu -- ikan maupun air tidak bisa lewat
@@ -128,6 +137,9 @@ var _kolom: int = 0
 
 var _air: Node2D = null
 var _petak_air: Dictionary = {}      # Vector2i -> Polygon2D
+## Sudut kisi yang sudah diacak, supaya dua petak bertetangga memakai titik
+## yang sama persis. Vector2i -> Vector2.
+var _sudut_teracak: Dictionary = {}
 var _sudah_terairi: Dictionary = {}
 var _dorongan: int = 0
 var _muatan: Dictionary = {}         # Vector2i -> float, lama ditekan
@@ -246,9 +258,15 @@ func _bangun_papan() -> void:
 
 			baris_isi.append(isi)
 			baris_lorong.append(lorong)
-			_pasang_lantai(p, isi == Isi.BATU, lorong)
 		_isi.append(baris_isi)
 		_lorong.append(baris_lorong)
+
+	# Lantainya digambar SESUDAH seluruh denah terbaca, bukan sambil membacanya.
+	# Bentuk tepi sungai bergantung pada petak TETANGGA, dan tetangga di sebelah
+	# kanan belum ada isinya saat baris ini masih dibaca.
+	_gambar_dasar()
+	_gambar_garis_pantai()
+	_hiasi_tepian()
 
 	_pasang_mulut(_masuk, "HULU", Color(0.55, 0.85, 0.98))
 	_pasang_mulut(_keluar, "MULUT SUNGAI", Color(0.62, 0.93, 0.75))
@@ -263,54 +281,154 @@ func _pasang_batu(induk: StaticBody2D, p: Vector2i) -> void:
 	induk.add_child(tabrakan)
 
 
-## Lantai petak digambar terpisah dari isinya supaya papannya selalu terbaca
-## sebagai KISI, bahkan di petak yang kosong. Tanpa kisi, pemain tidak punya
-## acuan seberapa jauh satu dorongan akan memindahkan balok.
-func _pasang_lantai(p: Vector2i, batu: bool, lorong: bool) -> void:
-	var s := lebar_petak * 0.5
-	var tengah := tengah_petak(p)
-	var kotak := PackedVector2Array([
-		Vector2(-s, -s), Vector2(s, -s), Vector2(s, s), Vector2(-s, s),
+## Titik sudut kisi yang sudah diacak, dalam koordinat dunia.
+##
+## INI KUNCINYA supaya papan tidak terlihat seperti kertas milimeter.
+## Yang diacak adalah SUDUT kisi, bukan tiap petak. Dua petak bertetangga
+## berbagi sudut yang sama persis, jadi acakannya menyatu tanpa celah maupun
+## tumpang tindih -- hasilnya tepi sungai yang berkelok, bukan kotak-kotak.
+## Kalau tiap petak diacak sendiri, sambungannya akan robek di mana-mana.
+##
+## Acakannya bersumber dari koordinat sudutnya sendiri, bukan dari randf(),
+## supaya bentuk sungainya sama persis tiap kali peta dimuat ulang. Sungai yang
+## berubah bentuk tiap kali diulang akan terasa seperti tempat yang berbeda.
+func _sudut(gx: int, gy: int) -> Vector2:
+	var kunci := Vector2i(gx, gy)
+	if _sudut_teracak.has(kunci):
+		return _sudut_teracak[kunci]
+
+	var dasar := titik_awal + Vector2(float(gx), float(gy)) * lebar_petak
+	# Sudut di tepi luar papan tidak diacak, supaya batas peta tetap rapi.
+	var di_tepi := gx == 0 or gy == 0 or gx == _kolom or gy == _baris
+	if not di_tepi:
+		var acak := RandomNumberGenerator.new()
+		acak.seed = hash(kunci)
+		var jauh := lebar_petak * 0.16
+		dasar += Vector2(acak.randf_range(-jauh, jauh), acak.randf_range(-jauh, jauh))
+
+	_sudut_teracak[kunci] = dasar
+	return dasar
+
+
+## Keempat sudut satu petak, searah jarum jam.
+func _segi_petak(p: Vector2i) -> PackedVector2Array:
+	return PackedVector2Array([
+		_sudut(p.x, p.y), _sudut(p.x + 1, p.y),
+		_sudut(p.x + 1, p.y + 1), _sudut(p.x, p.y + 1),
 	])
 
-	var dasar := Polygon2D.new()
-	dasar.polygon = kotak
-	dasar.position = tengah
-	if batu:
-		dasar.color = Color(0.17, 0.16, 0.12)
-	elif lorong:
-		# Lorong digambar jelas LEBIH GELAP daripada tepian. Perbedaan kedalaman
-		# ini satu-satunya yang memberi tahu pemain ke mana airnya akan lewat --
-		# tanpa itu, dia tidak punya cara tahu balok mana yang penting.
-		dasar.color = Color(0.06, 0.13, 0.17)
-	else:
-		dasar.color = Color(0.12, 0.2, 0.19)
-	_air.add_child(dasar)
 
-	var tepi := Line2D.new()
-	tepi.points = kotak + PackedVector2Array([kotak[0]])
-	tepi.position = tengah
-	if batu:
-		tepi.width = 4.0
-		tepi.default_color = Color(0.28, 0.26, 0.19)
-	elif lorong:
-		tepi.width = 3.0
-		tepi.default_color = Color(0.35, 0.72, 0.85, 0.35)
-	else:
-		tepi.width = 2.0
-		tepi.default_color = Color(1, 1, 1, 0.07)
-	_air.add_child(tepi)
+func _jenis(p: Vector2i) -> int:
+	if not _di_dalam(p):
+		return JENIS_LUAR
+	if _isi[p.y][p.x] == Isi.BATU:
+		return JENIS_BATU
+	return JENIS_LORONG if _lorong[p.y][p.x] else JENIS_TEPIAN
 
-	if batu or not lorong:
-		return
 
-	# Lapisan air yang menyala saat petak lorong ini akhirnya kebagian aliran.
-	var genangan := Polygon2D.new()
-	genangan.polygon = kotak
-	genangan.position = tengah
-	genangan.color = Color(0.35, 0.72, 0.85, 0.0)
-	_air.add_child(genangan)
-	_petak_air[p] = genangan
+## Isi tiap petak: batu, tepian, atau lorong. Tanpa garis pemisah sama sekali --
+## garisnya diurus _gambar_garis_pantai(), dan hanya di tempat yang memang
+## berganti jenis.
+func _gambar_dasar() -> void:
+	for y in _baris:
+		for x in _kolom:
+			var p := Vector2i(x, y)
+			var jenis := _jenis(p)
+			var segi := _segi_petak(p)
+
+			var isi := Polygon2D.new()
+			isi.polygon = segi
+			match jenis:
+				JENIS_BATU:
+					isi.color = Color(0.17, 0.16, 0.12)
+				JENIS_LORONG:
+					# Lorong jelas lebih gelap daripada tepian -- perbedaan
+					# kedalaman inilah satu-satunya yang memberi tahu pemain ke
+					# mana airnya akan lewat.
+					isi.color = Color(0.055, 0.125, 0.165)
+				_:
+					isi.color = Color(0.115, 0.195, 0.185)
+			_air.add_child(isi)
+
+			if jenis != JENIS_LORONG:
+				continue
+
+			# Lapisan air yang menyala saat petak lorong ini kebagian aliran.
+			var genangan := Polygon2D.new()
+			genangan.polygon = segi
+			genangan.color = Color(0.35, 0.72, 0.85, 0.0)
+			_air.add_child(genangan)
+			_petak_air[p] = genangan
+
+
+## Garis hanya digambar di SISI yang bersebelahan dengan jenis lain.
+##
+## Ini yang menghapus kesan kotak-kotak: kisi penuh menggambar 4 garis di tiap
+## petak, jadi seluruh papan jadi jala. Di sini garis cuma muncul di batas batu
+## dan air -- persis seperti garis pantai sungguhan. Dan karena kedua petak
+## bertetangga memakai sudut teracak yang sama, garisnya nyambung mulus jadi
+## satu kelokan panjang.
+func _gambar_garis_pantai() -> void:
+	var sisi := [
+		[Vector2i.UP, 0, 1], [Vector2i.RIGHT, 1, 2],
+		[Vector2i.DOWN, 2, 3], [Vector2i.LEFT, 3, 0],
+	]
+	for y in _baris:
+		for x in _kolom:
+			var p := Vector2i(x, y)
+			var jenis := _jenis(p)
+			if jenis == JENIS_BATU:
+				continue
+			var segi := _segi_petak(p)
+
+			for s in sisi:
+				var tetangga := _jenis(p + s[0])
+				if tetangga == jenis:
+					continue
+				var garis := Line2D.new()
+				garis.points = PackedVector2Array([segi[s[1]], segi[s[2]]])
+				garis.begin_cap_mode = Line2D.LINE_CAP_ROUND
+				garis.end_cap_mode = Line2D.LINE_CAP_ROUND
+				if tetangga == JENIS_BATU or tetangga == JENIS_LUAR:
+					garis.width = 7.0
+					garis.default_color = Color(0.31, 0.28, 0.19)
+				else:
+					# Batas lorong dengan tepian: garis samar kebiruan, cukup
+					# untuk menunjukkan tepi alur airnya tanpa jadi pagar.
+					garis.width = 3.0
+					garis.default_color = Color(0.35, 0.72, 0.85, 0.22)
+				_air.add_child(garis)
+
+
+## Rumput air dan batu kecil di tepian.
+##
+## Bukan hiasan kosong: petak tepian yang polos tetap terbaca sebagai kotak
+## kosong, dan mata butuh sesuatu yang tidak sejajar kisi untuk berhenti melihat
+## kisinya. Semuanya di tepian saja -- lorong dibiarkan bersih supaya alur air
+## dan baloknya tidak pernah tertutup apa pun.
+func _hiasi_tepian() -> void:
+	for y in _baris:
+		for x in _kolom:
+			var p := Vector2i(x, y)
+			if _jenis(p) != JENIS_TEPIAN:
+				continue
+			var acak := RandomNumberGenerator.new()
+			acak.seed = hash(p) + 7717
+			if acak.randf() > 0.62:
+				continue
+
+			var hias := Sprite2D.new()
+			var rumput := acak.randf() < 0.6
+			hias.texture = TEKSTUR_RUMPUT if rumput else TEKSTUR_BATU
+			hias.position = tengah_petak(p) + Vector2(
+				acak.randf_range(-0.3, 0.3), acak.randf_range(-0.28, 0.3)
+			) * lebar_petak
+			hias.scale = Vector2.ONE * acak.randf_range(0.42, 0.72)
+			hias.rotation = acak.randf_range(-0.35, 0.35)
+			hias.modulate = Color(0.62, 0.78, 0.66, 0.55) if rumput \
+				else Color(0.5, 0.48, 0.4, 0.6)
+			hias.flip_h = acak.randf() < 0.5
+			_air.add_child(hias)
 
 
 func _pasang_balok(p: Vector2i, besar: bool) -> void:
