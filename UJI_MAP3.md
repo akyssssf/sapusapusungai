@@ -1,174 +1,156 @@
 # Daftar Uji — Map 3 Kali Jeroan Madiun
 
-Status: **sekarang benar-benar puzzle.** Yang menentukan bukan lagi kelincahan, tapi
-**urutan** — dan urutan yang benar justru melawan insting pemain.
+Status: **puzzle dorong balok (Sokoban).** Dorong balok bambu keluar dari lorong sampai
+airnya tembus dari hulu ke mulut sungai.
 
 ```
 /Applications/Godot.app/Contents/MacOS/Godot --path . res://scenes/maps/map3_jeroan.tscn
 ```
 
-Kontrol: **WASD / panah** berenang · **Tab** (atau **Q**, atau **klik ikan**) ganti kendali.
+Kontrol: **WASD / panah** berenang & mendorong · **Tab** ganti ikan · **R** ulangi papan
 
 ---
 
-## Yang berubah: dari MENUNGGU jadi MENDORONG
+## Papannya
 
-Keluhan sebelumnya tepat — aturan urutan menambah *keputusan*, tapi yang dilakukan
-tangan pemain tetap sama: parkir dua ikan, tunggu cincin penuh. Tidak ada yang bergerak.
+```
+   MULUT SUNGAI                                                    HULU
+   (air harus sampai sini)                              (air masuk dari sini)
+        │                                                          │
+        ▼                                                          ▼
+      ┌────┬────┬────┬────┬────┬────┬────┬────┬────┬────┐
+      │████│████│    │████│████│    │████│████│████│████│
+      ├────┼────┼────┼────┼────┼────┼────┼────┼────┼────┤
+      │████│████│    │████│████│    │████│    │    │████│
+      ├────┼────┼────┼────┼────┼────┼────┼────┼────┼────┤
+      │ ◀━ │    │    │ ▓k │    │ ▓B │    │ ▓k │    │ ━▶ │  ← lorong air
+      ├────┼────┼────┼────┼────┼────┼────┼────┼────┼────┤
+      │████│████│    │████│████│    │████│    │    │████│
+      ├────┼────┼────┼────┼────┼────┼────┼────┼────┼────┤
+      │████│████│    │████│████│    │████│████│████│████│
+      └────┴────┴────┴────┴────┴────┴────┴────┴────┴────┘
+       kol0  1    2    3    4    5    6    7    8    9
 
-**Sekarang sumbatannya benar-benar didorong.**
+   ████ batu     ▓k balok kecil (1 ikan)     ▓B balok besar (2 IKAN)
+```
 
-| | |
+**Lorong tengah satu-satunya jalan air.** Kantong di atas dan bawah buntu — itulah
+tempat membuang balok.
+
+**Kolom 3 sengaja tidak punya kantong** (atas dan bawahnya batu). Balok di situ tidak
+bisa langsung dikeluarkan; harus digeser menyamping dulu ke kolom 2, baru dikeluarkan.
+Itu satu-satunya "aha" yang harus ditemukan sendiri.
+
+Penyelesaian paling hemat: **4 dorongan.**
+
+---
+
+## Kenapa dibangun ulang (lagi)
+
+Dua versi sebelumnya menyuruh pemain **menahan** sesuatu — menahan posisi, lalu menahan
+tombol. Dua-duanya bukan puzzle, karena tidak ada yang perlu dipindahkan ke tempat yang
+benar dan tidak ada langkah yang bisa salah secara permanen.
+
+Sokoban punya keduanya: tiap dorongan mengubah papan, dan sebagian dorongan tidak bisa
+dibatalkan.
+
+### Jawaban atas "ga tau titiknya di mana"
+
+Itu keluhan yang paling penting, dan sepenuhnya salah rancangan sebelumnya — ada tiga
+aturan tak terlihat sekaligus (radius 165 px, sisi seberang, arah tekan) dan tidak satu
+pun digambar di layar.
+
+| Sekarang | |
 |---|---|
-| **Ikan yang dipegang** | harus terus **berenang menekan** ke arah dorong. Lepas tombol = berhenti mendorong. |
-| **Ikan yang ditinggal** | otomatis **mengganjal** — tapi hanya kalau posisinya di sisi **seberang** arah dorong. Salah sisi, dia tidak membantu sama sekali. |
+| **Semuanya di atas petak** | Kisi terlihat. Tidak ada lagi radius tak terlihat. |
+| **Balok bermuka rata** | Ikan menempel di muka yang jelas, tidak meluncur menyusuri lengkungan. |
+| **Muka yang bisa didorong MENYALA** | Lengkap dengan panah arahnya, begitu ikan berada di tempat yang benar. Kuning = kurang ikan, biru = sudah cukup. |
+| **Balok besar berlabel "2 IKAN"** | Harfiah, bukan isyarat halus. Isyarat visual saja bikin pemain menyimpulkan "baloknya macet". |
+| **Airnya maju satu petak** | Tiap kali jalannya terbuka. Umpan balik langsung bahwa dorongan barusan berguna. |
 
-Ganjalan saja (1,0) maupun dorongan saja (maksimal 1,2) sama-sama di bawah ambang 1,5.
-Butuh keduanya. "Harus berdua" jadi dipaksakan oleh fisikanya, bukan oleh hitungan.
-
-Dan yang paling terasa: **sumbatannya bergeser di layar selama didorong**, ikut miring,
-memercikkan air — lalu **melorot balik** begitu dilepas. Ada bayangan samar di posisi
-tujuan supaya pemain tahu sampai mana harus mendorong.
-
-Tiap sumbatan punya arah dorong berbeda, jadi tempat mengganjalnya juga berpindah-pindah.
-
-### Perbaikan "nyangkut, berat, licin"
-
-Tiga keluhan itu ternyata tiga sebab terpisah:
-
-| Keluhan | Sebab | Perbaikan |
-|---|---|---|
-| **licin** | Menekan badan sumbatan bulat 86 px membuat ikan meluncur menyusuri lengkungannya lalu terlepas sendiri | Badan sumbatan pindah ke lapisan fisika sendiri — **ikan wader muat menyelinap di sela bambu**; yang tidak muat lewat justru airnya. Tebing sungai tetap padat. |
-| **nyangkut** | Kode arus mengembalikan kecepatan lama mentah-mentah sesudah `move_and_slide()`, membuang pangkasan tabrakan — ikan terus menggasak tebing tanpa pernah meluncur | Arusnya yang dikurangi, bukan kecepatannya yang dipasang balik |
-| **berat** | Ambang 1,6 membuat dorongan melenceng 60° menghasilkan **nol** kemajuan — terlihat seperti mekanik yang rusak | Ambang turun ke 1,5 dan kecepatan geser naik 78 → 120 px/dtk. Dorongan miring tetap maju, cuma pelan. |
-
-Terukur sekarang: dorongan lurus **120 px/dtk** (satu sumbatan ~1,4 detik), dorongan
-melenceng 55° **32 px/dtk** — masih maju, jadi pemain tahu dia sudah benar tapi kurang
-tepat sudutnya.
-
-## Aturan urutan (masih berlaku, di atas mekanik dorong)
-
-> **Sebuah sumbatan melepas ARUS DERAS kalau tidak ada lagi sumbatan lain yang masih
-> tertutup di HILIRNYA.**
-
-Air yang dilepas dari hulu ditahan sumbatan berikutnya — aman. Air yang dilepas dari
-hilir tidak ditahan apa pun, seluruh kolam menghambur. Urutan benar: **hulu dulu, hilir
-terakhir**, melawan insting karena ikan lahir di hilir. Penanda **AMAN** / **AWAS-DERAS**
-di tiap sumbatan membuatnya teka-teki, bukan jebakan. Tamat tanpa salah urutan =
-**RENCANA SEMPURNA +600**.
+---
 
 ## Sudah diuji otomatis — tidak perlu diulang
 
-**Mekanik dorong**
-- Satu ikan mendorong sekuatnya: **tidak menggerakkan sama sekali**
-- Ganjalan saja: juga tidak menggerakkan
-- Ganjal + dorong aktif: bergeser dan ikut berputar
-- **Ikan tidak lagi bertabrakan dengan badan sumbatan** (tebing tetap padat)
-- Menekan lurus ke sumbatan: **tidak meluncur menyamping sama sekali** (0 px)
-- Dorongan miring 55 derajat tetap maju, dan dorongan lurus 3,7x lebih cepat
-- Berhenti mendorong: melorot balik **bertahap**, bukan hangus total
-- Mendorong dari sisi yang salah: tidak menambah kemajuan
-- Didorong terus: akhirnya lepas
-- Ketiga sumbatan punya ruang untuk mengganjal di sisi seberangnya
-
-**CRASH yang dilaporkan sudah diperbaiki**
-- Membuka sumbatan kedua setelah yang pertama benar-benar dihapus Godot: tidak crash lagi
-- Daftar sumbatan dibersihkan dari acuan mati
-
-**Aturan urutan**
-- Tiga sumbatan diurutkan sendiri dari hilir ke hulu; **hanya satu berpenanda DERAS**
-  pada satu waktu, dan penandanya berpindah setelah tiap sumbatan terbuka
-- Membuka hilir duluan **melepas arus** dan menghanguskan bonus rencana sempurna
-- Membuka hulu duluan **tidak melepas arus** sama sekali
-- Sumbatan terakhir tetap melepas arus, **tapi tidak dihitung sebagai kesalahan**, dan
-  bonus rencana sempurna tetap diberikan (+1600 total di sumbatan itu)
-- Arus mendorong ikan yang berada di **hulu** titik lepasnya; ikan yang sudah lewat
-  lubangnya tidak ditarik balik
-- Arus mereda sendiri sampai nol — kesalahan urutan itu mahal, bukan permanen
-- Arus (190 px/dtk) **lebih lemah** daripada kecepatan renang (300) — pemain melawan
-  arus, bukan kehilangan kendali
-- Radius dorong antar sumbatan tidak bertumpuk (532 dan 371 px, ambangnya 330)
-- Skor: cepat → 1000, lambat → 500, setengah waktu → 750; bar aliran tidak menghitung ganda
+- Papan terbaca benar dari denah teks (10×5), mulut masuk & keluar ketemu
+- Tiga balok terpasang, satu di antaranya balok besar
+- **Balok besar TIDAK bergerak dengan satu ikan**; bergerak dengan dua
+- Balok kecil bergerak dengan satu ikan, dan petak asalnya jadi kosong
+- Airnya ikut maju tiap kali balok minggir (6 → 8 petak setelah dorongan pertama)
+- **Kolom 3 tidak bisa langsung dikeluarkan ke atas**, tapi bisa digeser ke kolom 2
+  lalu dikeluarkan dari sana
+- **Papannya benar-benar bisa diselesaikan** dalam 4 dorongan, dan babnya berakhir
+  begitu air menyentuh mulut sungai
+- Balok tidak bisa didorong ke mulut sungai (papan tidak bisa dibuat mustahil tanpa sadar)
+- Balok tidak bisa didorong ke petak yang sedang ditempati ikan
 
 ---
 
-## A. Apakah sekarang terasa seperti puzzle? (pertanyaan utama)
+## A. Yang paling ingin saya tahu
 
-Main **tanpa membaca dokumen ini dulu**.
+Main **tanpa membaca dokumen ini dulu.**
 
-- [ ] **Percobaan pertama Anda mulai dari sumbatan yang mana?** (jujur — kalau dari yang
-      kiri, itu justru hasil yang saya harapkan)
-- [ ] Setelah arusnya menghambur, banner penjelasannya membuat Anda paham **sebabnya**,
-      atau cuma terasa dihukum tiba-tiba?
-- [ ] Di percobaan kedua, Anda langsung tahu harus mulai dari kanan?
-- [ ] Penanda **AMAN / AWAS-DERAS** terbaca sebelum Anda bertindak, atau baru ketahuan
-      setelah terlambat?
-- [ ] Panah oranye jelas menunjukkan ke mana airnya akan lari?
-- [ ] Setelah tahu jawabannya, mengulang bab ini masih menarik (mengejar RENCANA
-      SEMPURNA), atau jadi hambar lagi?
+- [ ] **Sekarang jelas titik dorongnya di mana?** (ini pertanyaan utamanya)
+- [ ] Muka balok yang menyala + panah: kelihatan, atau terlewat?
+- [ ] Label "2 IKAN" di balok besar cukup untuk paham harus bawa ikan kedua?
+- [ ] Airnya yang maju satu petak: terasa sebagai hadiah tiap dorongan?
+- [ ] **Sudah terasa seperti puzzle dorong balok yang Anda bayangkan?**
 
-## B. Rasa arusnya
+## B. Kesulitan
 
-- [ ] 190 px/dtk terasa **berat tapi masih bisa dilawan**, atau kendali serasa dirampas?
-- [ ] 11 detik terasa pas, atau kelamaan menunggu?
-- [ ] Meredanya terasa alami?
-- [ ] Sumbatan terakhir yang melepas arus sebagai penutup: terasa sebagai kemenangan?
+- [ ] Balok kolom 3 (yang harus digeser menyamping dulu): ketemu sendiri, atau bikin buntu?
+- [ ] Pernah membuat papan jadi mustahil? Kalau ya, **R** kelihatan sebagai jalan keluar?
+- [ ] 4 dorongan terasa terlalu sedikit? (papannya bisa dibuat lebih besar)
+- [ ] Berapa lama satu ronde? (**catat menitnya**)
 
-## C. Rasa mendorong (yang paling saya ingin tahu)
+## C. Rasa
 
-- [ ] **Masih nyangkut atau licin?** (ini yang paling perlu dipastikan hilang)
-- [ ] Ikan yang bisa menyelinap menembus bambu: terasa wajar, atau malah aneh?
-- [ ] **Masih terasa berat?** Satu sumbatan sekarang ~1,4 detik dorongan lurus.
-- [ ] Melorot balik saat dilepas: bikin tegang, atau bikin frustrasi?
-- [ ] Aturan "ganjal dari sisi seberang" ketemu sendiri, atau harus baca papan dulu?
-- [ ] 2,2 detik dorongan penuh per sumbatan: pas, kependekan, atau kepanjangan?
-- [ ] Kamera dua ikan saat keduanya berjauhan membantu atau bikin pusing?
-- [ ] Berapa lama satu ronde penuh sekarang? (**catat menitnya**)
+- [ ] 0,3 detik menekan sebelum balok pindah: pas, atau terasa lambat?
+- [ ] Balok yang meluncur 0,22 detik + sedikit gepeng: terasa berat?
+- [ ] Kamera dua ikan masih enak dengan papan sebesar ini?
 
 ---
 
-## Tombol setelan Map 3
+## Mengubah papannya
 
-| Yang mau diubah | Node | Properti |
-|---|---|---|
-| **Kekuatan arus deras** | Map3Jeroan | `kekuatan_arus` (190) |
-| **Lama arus mereda** | Map3Jeroan | `lama_arus` (11 dtk) |
-| **Hadiah urutan benar** | Map3Jeroan | `bonus_rencana_sempurna` (600) |
-| Hanyut ikan yang ditinggal | FishA / FishB | `idle_current_drift` (8; 0 = mati) |
-| Nilai dasar tiap sumbatan | Map3Jeroan | `score_per_obstacle` (500) |
-| Bonus cepat maksimum | Map3Jeroan | `max_efficiency_bonus` (500) |
-| Lama bonus habis | Map3Jeroan | `bonus_fade_seconds` (24 dtk) |
-| **Arah sumbatan didorong** | tiap Sumbatan | `arah_dorong` |
-| **Sejauh apa sampai lepas** | tiap Sumbatan | `jarak_lepas` (170 / 150 / 170) |
-| **Seberat apa** | tiap Sumbatan | `ambang_gerak` (1,5), `tenaga_ganjal` (1,0), `tenaga_dorong` (1,2) |
-| **Cepat didorong / melorot** | tiap Sumbatan | `kecepatan_geser` (120), `kecepatan_lorot` (20) |
-| Jarak ikan masih terhitung | tiap Sumbatan | `radius_dorong` (165) |
-| Warna penanda ramalan | tiap Sumbatan | `warna_aman` / `warna_deras` |
-| Gerbang progres | Map3Jeroan | `requires_map2`, `bypass_progress_gate` |
+Seluruh papan ada di **satu konstanta teks** di `scripts/map3_manager.gd`:
 
-## Menambah atau menggeser sumbatan
+```gdscript
+const PETA := [
+	"##.##.####",
+	"##.##.#..#",
+	"O..k.B.k.I",
+	"##.##.#..#",
+	"##.##.####",
+]
+```
 
-Duplikat salah satu node **Sumbatan** di dalam `Obstacles`, geser posisinya. Wasit
-mengurutkan sendiri berdasarkan posisi X dan menghitung ulang siapa yang AMAN dan siapa
-yang DERAS. **Tidak ada daftar urutan yang ditulis mati di mana pun** — jawabannya ikut
-berubah sendiri.
+`#` batu · `.` air bisa lewat · `k` balok kecil · `B` balok besar ·
+`I` mulut masuk · `O` mulut keluar
 
-**Tiga syarat yang perlu dijaga:**
-1. Jarak ke sumbatan tetangga harus **lebih besar dari jumlah kedua `radius_dorong`**
-   (dengan 165, artinya lebih dari 330 px), supaya satu ikan tidak terhitung di dua
-   sumbatan sekaligus.
-2. Harus ada **ruang air di sisi seberang `arah_dorong`** untuk ikan mengganjal —
-   sekitar 130 px dari titik tengah sumbatan, di dalam air dan bukan di dalam tebing.
-   Tanpa ruang itu, sumbatannya mustahil didorong.
-3. `kekuatan_arus` harus **di bawah** `max_speed` ikan (300), kalau tidak pemain kehilangan
-   kendali alih-alih ditantang.
+Ubah gambarnya, papannya ikut berubah — batu, tabrakan, balok, dan aliran airnya
+dibangun sendiri saat scene dibuka. **Jangan lupa memperbarui `DORONGAN_OPTIMAL`**
+kalau denahnya diubah, karena angka itu yang dipakai menghitung bonus.
+
+Ukuran papan boleh berapa saja asal semua barisnya sama panjang.
+
+## Tombol setelan lain
+
+| Yang mau diubah | Properti di Map3Jeroan |
+|---|---|
+| Besar petak | `lebar_petak` (140) |
+| Lama menekan sebelum balok pindah | `waktu_dorong` (0,3 dtk) |
+| Lama balok meluncur | `lama_geser` (0,22 dtk) |
+| Skor tiap petak air baru | `skor_per_petak_air` (40) |
+| Skor selesai & bonus hemat | `skor_selesai` (1000), `bonus_langkah` (800) |
+| Denda tiap dorongan berlebih | `denda_per_langkah` (100) |
 
 ---
 
 ## Belum ada — sengaja
 
-- **Latar masih sederhana**: gradasi air + tebing polos + partikel arus.
-- **Arus deras belum punya visual sendiri** selain guncangan kamera dan bunyi — partikel
-  arus derasnya menyusul.
-- **Sprite sumbatan masih Polygon2D**, bukan gambar bambu sungguhan.
-- Map 3 tidak memakai satu pun script Map 1/2.
+- **Sprite balok masih Polygon2D** bergaris, bukan gambar ikatan bambu sungguhan.
+- **Batu masih kotak polos** — belum ada tekstur tebing.
+- **Belum ada undo satu langkah**; yang ada baru ulang seluruh papan (R).
+- **Baru satu papan.** Kalau mekaniknya sudah terasa benar, menambah papan kedua tinggal
+  menambah satu denah teks lagi.

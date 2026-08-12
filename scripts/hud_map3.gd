@@ -48,9 +48,16 @@ func _process(delta: float) -> void:
 
 
 ## Angka bulat: dipakai saat satu sumbatan benar-benar terbuka.
-func set_progress(cleared: int, total: int) -> void:
-	_flow_label.text = "Aliran sungai   %d / %d sumbatan" % [cleared, maxi(total, 1)]
-	set_progress_fine(float(cleared), total)
+## Di Map 3 angka ini bukan "sudah berapa", melainkan "sudah berapa dorongan
+## dibanding jumlah yang seharusnya cukup". Pemain perlu tahu dia sedang boros
+## SELAGI bermain, bukan baru diberi tahu di layar hasil saat sudah terlambat.
+func set_progress(dorongan: int, optimal: int) -> void:
+	if dorongan <= optimal:
+		_flow_label.text = "Aliran sungai        %d dorongan" % dorongan
+	else:
+		_flow_label.text = "Aliran sungai        %d dorongan  (%d di atas paling hemat)" % [
+			dorongan, dorongan - optimal
+		]
 
 
 ## Angka pecahan: dipakai tiap frame supaya bar ikut naik SELAMA dua ikan

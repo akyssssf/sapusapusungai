@@ -42,6 +42,18 @@ signal became_active
 
 var is_active: bool = false
 
+## Arah yang DIMINTA pemain frame ini, sebelum tabrakan memangkasnya.
+##
+## Ini bukan duplikat dari velocity, dan bedanya menentukan apakah mekanik
+## dorong Map 3 bekerja sama sekali. Begitu ikan menempel ke balok, tabrakan
+## menghapus komponen kecepatan yang menuju balok itu -- justru komponen yang
+## menyatakan "aku sedang mendorong". Wasit yang membaca velocity akan melihat
+## ikan yang nyaris diam dan menyimpulkan tidak ada yang mendorong, tepat pada
+## saat pemain menekan tombol paling kuat.
+##
+## Jadi niat pemain disimpan terpisah dari akibat fisikanya.
+var arah_niat: Vector2 = Vector2.ZERO
+
 ## Kotak air tempat ikan boleh berenang. Diisi map3_manager.
 var swim_bounds: Rect2 = Rect2()
 
@@ -72,11 +84,13 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if is_active:
 		var direction := Input.get_vector("swim_left", "swim_right", "swim_up", "swim_down")
+		arah_niat = direction
 		if direction.is_zero_approx():
 			velocity = velocity.move_toward(Vector2.ZERO, water_drag * delta)
 		else:
 			velocity = velocity.move_toward(direction * max_speed, acceleration * delta)
 	else:
+		arah_niat = Vector2.ZERO
 		# Ikan yang ditinggal direm sampai berhenti, lalu (kalau arusnya
 		# dinyalakan) hanyut pelan. Direm dulu, bukan langsung dinolkan, supaya
 		# pergantian kendali tidak terasa seperti tombol jeda.
