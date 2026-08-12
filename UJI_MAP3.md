@@ -7,43 +7,60 @@ airnya tembus dari hulu ke mulut sungai.
 /Applications/Godot.app/Contents/MacOS/Godot --path . res://scenes/maps/map3_jeroan.tscn
 ```
 
-Kontrol: **WASD / panah** berenang & mendorong · **Tab** ganti ikan · **R** ulangi papan
+Kontrol: **WASD / panah** berenang & mendorong · **R** ulangi papan
 
 ---
 
 ## Papannya
 
 ```
-   MULUT SUNGAI                                                    HULU
-   (air harus sampai sini)                              (air masuk dari sini)
-        │                                                          │
-        ▼                                                          ▼
-      ┌────┬────┬────┬────┬────┬────┬────┬────┬────┬────┐
-      │████│████│    │████│████│    │████│████│████│████│
-      ├────┼────┼────┼────┼────┼────┼────┼────┼────┼────┤
-      │████│████│    │████│████│    │████│    │    │████│
-      ├────┼────┼────┼────┼────┼────┼────┼────┼────┼────┤
-      │ ◀━ │    │    │ ▓k │    │ ▓B │    │ ▓k │    │ ━▶ │  ← lorong air
-      ├────┼────┼────┼────┼────┼────┼────┼────┼────┼────┤
-      │████│████│    │████│████│    │████│    │    │████│
-      ├────┼────┼────┼────┼────┼────┼────┼────┼────┼────┤
-      │████│████│    │████│████│    │████│████│████│████│
-      └────┴────┴────┴────┴────┴────┴────┴────┴────┴────┘
-       kol0  1    2    3    4    5    6    7    8    9
+  MULUT SUNGAI                                                  HULU
+       ▼                                                         ▼
+     ┌────┬────┬────┬────┬────┬────┬────┬────┬────┬────┐
+     │████│    │    │    │    │    │    │    │    │████│  ← tepian (ikan lewat)
+     ├────┼────┼────┼────┼────┼────┼────┼────┼────┼────┤
+     │████│    │ ⌂  │████│ ⌂  │████│    │ ⌂  │    │████│  ← kantong balok
+     ├────┼────┼────┼────┼────┼────┼────┼────┼────┼────┤
+     │ ◀━ │≈≈≈≈│ ▓k │≈≈≈≈│≈≈≈≈│ ▓B │≈≈≈≈│ ▓k │≈≈≈≈│ ━▶ │  ← LORONG AIR
+     ├────┼────┼────┼────┼────┼────┼────┼────┼────┼────┤
+     │████│    │    │████│    │████│    │    │    │████│
+     ├────┼────┼────┼────┼────┼────┼────┼────┼────┼────┤
+     │████│    │    │    │    │    │    │    │    │████│
+     └────┴────┴────┴────┴────┴────┴────┴────┴────┴────┘
+      kol0  1    2    3    4    5    6    7    8    9
 
-   ████ batu     ▓k balok kecil (1 ikan)     ▓B balok besar (2 IKAN)
+  ████ batu   ≈ lorong air (gelap)   kosong = tepian (lebih terang)
+  ▓k balok kecil (1 ikan)            ▓B balok besar (2 IKAN)
 ```
 
-**Lorong tengah satu-satunya jalan air.** Kantong di atas dan bawah buntu — itulah
-tempat membuang balok.
+**Lorong yang gelap = jalan air. Tepian yang lebih terang = jalan ikan.**
+Air cuma mengalir di lorong; ikan bisa berenang di mana saja.
 
-**Kolom 3 sengaja tidak punya kantong** (atas dan bawahnya batu). Balok di situ tidak
-bisa langsung dikeluarkan; harus digeser menyamping dulu ke kolom 2, baru dikeluarkan.
-Itu satu-satunya "aha" yang harus ditemukan sendiri.
+Pemisahan itu bukan hiasan — versi pertama papan ini memakai satu jenis petak untuk
+keduanya dan ternyata **mustahil diselesaikan**: begitu balok pertama menyumbat lorong,
+ikannya ikut terkurung dan tidak akan pernah bisa mencapai sisi seberang balok mana pun.
+Sokoban menuntut pemain bisa berjalan memutari balok, tapi kalau air boleh lewat semua
+petak yang bisa dilalui ikan, jalan memutar itu jadi jalan pintas buat airnya juga.
+
+**Balok kolom 5 terjepit batu atas-bawah**, jadi tidak bisa langsung dikeluarkan — harus
+digeser menyamping dulu ke kolom 4 yang punya kantong. Itu satu-satunya "aha" yang harus
+ditemukan sendiri.
 
 Penyelesaian paling hemat: **4 dorongan.**
 
----
+## Wader B sekarang NPC
+
+Tidak ada lagi Tab. Kamu cuma memegang **Wader A**; Wader B mengikuti sendiri lewat
+tepian, dan merapat otomatis begitu kamu menempel di muka balok besar.
+
+Dia punya pencarian jalur sungguhan (BFS di atas kisi) — berenang lurus tidak cukup di
+papan Sokoban, karena ikan yang mengarah lurus akan menempel di sisi balok lalu berhenti
+di situ selamanya.
+
+**Dan dia tidak akan pernah mendorong balok yang bukan sedang kamu dorong.** Tanpa aturan
+itu dia menggeser apa pun yang kebetulan dilewatinya saat menyusul — dan di Sokoban satu
+dorongan tak diniatkan bisa mematikan papan, lalu pemain menyalahkan dirinya sendiri
+untuk langkah yang bukan dia yang lakukan.
 
 ## Kenapa dibangun ulang (lagi)
 
@@ -79,8 +96,13 @@ pun digambar di layar.
 - Airnya ikut maju tiap kali balok minggir (6 → 8 petak setelah dorongan pertama)
 - **Kolom 3 tidak bisa langsung dikeluarkan ke atas**, tapi bisa digeser ke kolom 2
   lalu dikeluarkan dari sana
-- **Papannya benar-benar bisa diselesaikan** dalam 4 dorongan, dan babnya berakhir
-  begitu air menyentuh mulut sungai
+- **Papannya benar-benar bisa diselesaikan** dalam 4 dorongan **tanpa Tab sekali pun**,
+  dan babnya berakhir begitu air menyentuh mulut sungai (10/10 petak lorong terairi)
+- NPC menyusul pemain menyeberangi papan lewat tepian (sisa 78 px dari tujuan)
+- NPC berdiri di seberang pemain, tidak menumpuk di atasnya
+- NPC **tidak** mendorong balok yang bukan sedang dibantu (dulu bisa: 5 dorongan, sekarang 4)
+- Kedua ikan lahir di tepian, bukan di dalam lorong yang sedang mereka buka
+- Papan tergambar DI DEPAN latar (dulu tersembunyi di belakangnya)
 - Balok tidak bisa didorong ke mulut sungai (papan tidak bisa dibuat mustahil tanpa sadar)
 - Balok tidak bisa didorong ke petak yang sedang ditempati ikan
 
@@ -92,6 +114,9 @@ Main **tanpa membaca dokumen ini dulu.**
 
 - [ ] **Sekarang jelas titik dorongnya di mana?** (ini pertanyaan utamanya)
 - [ ] Muka balok yang menyala + panah: kelihatan, atau terlewat?
+- [ ] **Lorong gelap vs tepian terang: kebedaan?** Paham air cuma lewat yang gelap?
+- [ ] Wader B yang ikut sendiri: terasa membantu, atau malah menghalangi?
+- [ ] Pernah menunggu lama Wader B datang? (dia 12% lebih pelan dari kamu, sengaja)
 - [ ] Label "2 IKAN" di balok besar cukup untuk paham harus bawa ikan kedua?
 - [ ] Airnya yang maju satu petak: terasa sebagai hadiah tiap dorongan?
 - [ ] **Sudah terasa seperti puzzle dorong balok yang Anda bayangkan?**
@@ -117,16 +142,20 @@ Seluruh papan ada di **satu konstanta teks** di `scripts/map3_manager.gd`:
 
 ```gdscript
 const PETA := [
-	"##.##.####",
-	"##.##.#..#",
-	"O..k.B.k.I",
-	"##.##.#..#",
-	"##.##.####",
+	"#........#",
+	"#..#.#...#",
+	"O=k==B=k=I",
+	"#..#.#...#",
+	"#........#",
 ]
 ```
 
-`#` batu · `.` air bisa lewat · `k` balok kecil · `B` balok besar ·
-`I` mulut masuk · `O` mulut keluar
+`#` batu · `.` **tepian** (ikan lewat, air tidak) · `=` **lorong** (air mengalir) ·
+`k` balok kecil · `B` balok besar · `I` mulut masuk · `O` mulut keluar
+
+**Syarat papan yang sah:** tiap balok harus punya sisi yang bisa dicapai ikan lewat
+tepian, kalau tidak papannya mustahil. Dan lorong tidak boleh punya jalan memutar,
+kalau tidak airnya lewat begitu saja.
 
 Ubah gambarnya, papannya ikut berubah — batu, tabrakan, balok, dan aliran airnya
 dibangun sendiri saat scene dibuka. **Jangan lupa memperbarui `DORONGAN_OPTIMAL`**

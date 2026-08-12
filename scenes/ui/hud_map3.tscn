@@ -71,7 +71,7 @@ theme_override_colors/font_color = Color(0.42, 0.94, 0.62, 1)
 theme_override_colors/font_outline_color = Color(0.02, 0.06, 0.09, 0.9)
 theme_override_constants/outline_size = 7
 theme_override_font_sizes/font_size = 20
-text = "Mengendalikan: Wader A     [Tab] ganti"
+text = "Kamu: Wader A          Wader B ikut sendiri"
 
 [node name="Banner" type="Label" parent="."]
 unique_name_in_owner = true
@@ -102,7 +102,7 @@ theme_override_colors/font_color = Color(1, 1, 1, 0.5)
 theme_override_colors/font_outline_color = Color(0.02, 0.06, 0.09, 0.7)
 theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 17
-text = "WASD / panah berenang & mendorong  -  Tab ganti ikan  -  R ulangi papan"
+text = "WASD / panah berenang & mendorong  -  Wader B menyusul sendiri  -  R ulangi papan"
 
 [node name="Overlay" type="Control" parent="."]
 unique_name_in_owner = true

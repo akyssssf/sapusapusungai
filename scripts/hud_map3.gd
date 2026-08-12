@@ -67,8 +67,13 @@ func set_progress_fine(progress: float, total: int) -> void:
 	_flow_bar.value = clampf(progress / float(maxi(total, 1)), 0.0, 1.0)
 
 
-func set_active_fish(fish_name: String, colour: Color) -> void:
-	_active_label.text = "Mengendalikan: %s     [Tab] ganti" % fish_name
+func set_active_fish(fish_name: String, colour: Color, nama_teman: String = "") -> void:
+	if nama_teman.is_empty():
+		_active_label.text = "Mengendalikan: %s" % fish_name
+	else:
+		# Nama pendamping ikut disebut supaya pemain tahu ikan kedua itu TEMAN
+		# yang bekerja sendiri, bukan ikan yang lupa dia kendalikan.
+		_active_label.text = "Kamu: %s          %s ikut sendiri" % [fish_name, nama_teman]
 	_active_label.add_theme_color_override("font_color", colour)
 
 

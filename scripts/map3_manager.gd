@@ -37,27 +37,42 @@ const Z_BALOK := 0
 const Z_IKAN := 5
 
 ## Denah papan.
-##   #  batu, tidak bisa didorong dan menahan air
-##   .  air bisa lewat
-##   k  balok kecil, satu ikan cukup
-##   B  balok besar, butuh dua ikan
+##   #  batu -- ikan maupun air tidak bisa lewat
+##   .  TEPIAN: ikan bisa berenang, air TIDAK mengalir ke sini
+##   =  LORONG: ikan bisa berenang, DAN air mengalir lewat sini
+##   k  balok kecil di lorong, satu ikan cukup
+##   B  balok besar di lorong, butuh dua ikan
 ##   I  mulut masuk air (hulu)
 ##   O  mulut keluar air (hilir) -- air harus sampai sini
 ##
-## Lorong tengah adalah SATU-SATUNYA jalan air; kantong di atas dan bawah buntu,
-## jadi mendorong balok ke sana benar-benar menyingkirkannya. Kolom 3 sengaja
-## tidak punya kantong: balok di situ harus digeser dulu menyamping ke kolom 2
-## sebelum bisa dikeluarkan. Itu satu-satunya "aha" yang harus ditemukan sendiri.
+## KENAPA TEPIAN DAN LORONG DIPISAH.
+##
+## Versi pertama papan ini memakai satu jenis petak untuk keduanya, dan hasilnya
+## MUSTAHIL diselesaikan: lorong air satu-satunya jalan ikan juga, jadi begitu
+## balok pertama menyumbat lorong, ikan ikut terkurung di satu sisi dan tidak
+## akan pernah bisa mencapai sisi seberang balok mana pun.
+##
+## Sokoban memang menuntut pemain bisa berjalan MEMUTARI balok. Tapi kalau air
+## boleh lewat semua petak yang bisa dilalui ikan, jalan memutar itu otomatis
+## jadi jalan pintas buat airnya juga, dan puzzlenya bubar.
+##
+## Pemisahan ini menyelesaikan keduanya sekaligus, dan kebetulan juga jujur
+## secara fisik: lorong itu bagian dalam sungai, tepian itu bagian dangkal.
+## Ikan wader lewat di mana saja; arus airnya cuma lewat yang dalam.
+##
+## Balok di kolom 5 sengaja terjepit batu atas-bawah: dia tidak bisa langsung
+## dikeluarkan, harus digeser menyamping dulu ke kolom 4 yang punya kantong.
+## Itu satu-satunya "aha" yang harus ditemukan sendiri.
 const PETA := [
-	"##.##.####",
-	"##.##.#..#",
-	"O..k.B.k.I",
-	"##.##.#..#",
-	"##.##.####",
+	"#........#",
+	"#..#.#...#",
+	"O=k==B=k=I",
+	"#..#.#...#",
+	"#........#",
 ]
 
 ## Dorongan paling sedikit yang bisa menyelesaikan papan di atas:
-## k(2,7) keluar, B(2,5) keluar, k(2,3) geser kiri lalu keluar = 4.
+## k(2) naik = 1; B(5) geser kiri lalu naik = 2; k(7) naik = 1. Total 4.
 const DORONGAN_OPTIMAL := 4
 
 @export_group("Papan")
@@ -103,6 +118,8 @@ var _phase: int = Phase.BERMAIN
 
 ## Isi tiap petak, diakses lewat _isi[baris][kolom].
 var _isi: Array = []
+## Petak mana yang dilalui arus air. Ikan boleh berenang di luar ini.
+var _lorong: Array = []
 var _balok: Dictionary = {}          # Vector2i -> node balok
 var _masuk: Vector2i = Vector2i.ZERO
 var _keluar: Vector2i = Vector2i.ZERO
@@ -115,6 +132,10 @@ var _sudah_terairi: Dictionary = {}
 var _dorongan: int = 0
 var _muatan: Dictionary = {}         # Vector2i -> float, lama ditekan
 var _menunggu_lanjut: bool = false
+## Sudah berapa lama pendamping tidak bergerak padahal belum sampai tujuan.
+var _teman_macet: float = 0.0
+## Balok yang sedang SENGAJA dibantu pendamping. Vector2i(-1, -1) = tidak ada.
+var _petak_dibantu: Vector2i = Vector2i(-1, -1)
 
 
 func _ready() -> void:
@@ -143,6 +164,11 @@ func _ready() -> void:
 	_bangun_papan()
 	_taruh_ikan()
 	_setup_camera(kotak_air)
+
+	# Wader B tidak pernah bisa diambil alih. Ini bukan penyederhanaan malas:
+	# ikan kedua yang KADANG dikendalikan pemain berarti dua bahasa kendali
+	# dalam satu bab, dan pemain harus terus mengingat sedang memakai yang mana.
+	_fish[1].npc = true
 	_set_active(0)
 	_hitung_air(false)
 
@@ -195,11 +221,13 @@ func _bangun_papan() -> void:
 
 	for y in _baris:
 		var baris_isi: Array = []
+		var baris_lorong: Array = []
 		var teks := String(PETA[y])
 		for x in _kolom:
 			var huruf := teks[x]
 			var p := Vector2i(x, y)
 			var isi := Isi.KOSONG
+			var lorong := huruf in ["=", "k", "B", "I", "O"]
 
 			match huruf:
 				"#":
@@ -217,8 +245,10 @@ func _bangun_papan() -> void:
 					_keluar = p
 
 			baris_isi.append(isi)
-			_pasang_lantai(p, isi == Isi.BATU)
+			baris_lorong.append(lorong)
+			_pasang_lantai(p, isi == Isi.BATU, lorong)
 		_isi.append(baris_isi)
+		_lorong.append(baris_lorong)
 
 	_pasang_mulut(_masuk, "HULU", Color(0.55, 0.85, 0.98))
 	_pasang_mulut(_keluar, "MULUT SUNGAI", Color(0.62, 0.93, 0.75))
@@ -236,41 +266,47 @@ func _pasang_batu(induk: StaticBody2D, p: Vector2i) -> void:
 ## Lantai petak digambar terpisah dari isinya supaya papannya selalu terbaca
 ## sebagai KISI, bahkan di petak yang kosong. Tanpa kisi, pemain tidak punya
 ## acuan seberapa jauh satu dorongan akan memindahkan balok.
-func _pasang_lantai(p: Vector2i, batu: bool) -> void:
+func _pasang_lantai(p: Vector2i, batu: bool, lorong: bool) -> void:
 	var s := lebar_petak * 0.5
 	var tengah := tengah_petak(p)
-
-	var kotak := Polygon2D.new()
-	kotak.polygon = PackedVector2Array([
+	var kotak := PackedVector2Array([
 		Vector2(-s, -s), Vector2(s, -s), Vector2(s, s), Vector2(-s, s),
 	])
-	kotak.position = tengah
-	kotak.color = Color(0.16, 0.15, 0.11) if batu else Color(0.09, 0.17, 0.2)
-	_air.add_child(kotak)
 
+	var dasar := Polygon2D.new()
+	dasar.polygon = kotak
+	dasar.position = tengah
 	if batu:
-		var tepi := Line2D.new()
-		tepi.points = kotak.polygon + PackedVector2Array([kotak.polygon[0]])
+		dasar.color = Color(0.17, 0.16, 0.12)
+	elif lorong:
+		# Lorong digambar jelas LEBIH GELAP daripada tepian. Perbedaan kedalaman
+		# ini satu-satunya yang memberi tahu pemain ke mana airnya akan lewat --
+		# tanpa itu, dia tidak punya cara tahu balok mana yang penting.
+		dasar.color = Color(0.06, 0.13, 0.17)
+	else:
+		dasar.color = Color(0.12, 0.2, 0.19)
+	_air.add_child(dasar)
+
+	var tepi := Line2D.new()
+	tepi.points = kotak + PackedVector2Array([kotak[0]])
+	tepi.position = tengah
+	if batu:
 		tepi.width = 4.0
-		tepi.default_color = Color(0.26, 0.24, 0.17)
-		tepi.position = tengah
-		_air.add_child(tepi)
+		tepi.default_color = Color(0.28, 0.26, 0.19)
+	elif lorong:
+		tepi.width = 3.0
+		tepi.default_color = Color(0.35, 0.72, 0.85, 0.35)
+	else:
+		tepi.width = 2.0
+		tepi.default_color = Color(1, 1, 1, 0.07)
+	_air.add_child(tepi)
+
+	if batu or not lorong:
 		return
 
-	# Petak yang bisa dilalui air diberi kisi tipis; petak batu tidak, supaya
-	# mata langsung memisahkan "ruang" dari "dinding".
-	var kisi := Line2D.new()
-	kisi.points = PackedVector2Array([
-		Vector2(-s, -s), Vector2(s, -s), Vector2(s, s), Vector2(-s, s), Vector2(-s, -s),
-	])
-	kisi.width = 2.0
-	kisi.default_color = Color(1, 1, 1, 0.07)
-	kisi.position = tengah
-	_air.add_child(kisi)
-
-	# Lapisan air yang menyala saat petak ini akhirnya kebagian aliran.
+	# Lapisan air yang menyala saat petak lorong ini akhirnya kebagian aliran.
 	var genangan := Polygon2D.new()
-	genangan.polygon = kotak.polygon
+	genangan.polygon = kotak
 	genangan.position = tengah
 	genangan.color = Color(0.35, 0.72, 0.85, 0.0)
 	_air.add_child(genangan)
@@ -301,19 +337,20 @@ func _pasang_mulut(p: Vector2i, teks: String, warna: Color) -> void:
 
 
 func _taruh_ikan() -> void:
-	# Kedua ikan lahir di lorong sebelah hilir, di petak kosong pertama yang
-	# ketemu dari kiri -- bukan di koordinat yang ditulis mati, supaya denah
-	# papan boleh diubah tanpa memindahkan ikannya secara manual.
+	# Ikan lahir di TEPIAN sebelah hilir, bukan di dalam lorong -- dan bukan di
+	# koordinat yang ditulis mati, supaya denah papan boleh diubah tanpa harus
+	# memindahkan ikannya secara manual.
 	var titik: Array[Vector2i] = []
 	for x in _kolom:
-		var p := Vector2i(x, int(_baris / 2))
-		if _isi[p.y][p.x] == Isi.KOSONG and p != _keluar:
-			titik.append(p)
+		for y in _baris:
+			var p := Vector2i(x, y)
+			if _isi[y][x] == Isi.KOSONG and not _lorong[y][x]:
+				titik.append(p)
 		if titik.size() >= 2:
 			break
 	for i in _fish.size():
 		if i < titik.size():
-			_fish[i].global_position = tengah_petak(titik[i]) + Vector2(0.0, -22.0 + 44.0 * float(i))
+			_fish[i].global_position = tengah_petak(titik[i])
 
 
 # --- Dorongan ---------------------------------------------------------------
@@ -322,11 +359,168 @@ func _physics_process(delta: float) -> void:
 	if _phase != Phase.BERMAIN:
 		return
 
+	_arahkan_pendamping(delta)
+
 	for p in _balok.keys():
 		var balok = _balok[p]
 		if not is_instance_valid(balok) or balok.sibuk:
 			continue
 		_urus_satu_balok(p, balok, delta)
+
+
+# --- Wader B, si pendamping -------------------------------------------------
+
+## Ke mana pendamping harus berenang frame ini.
+##
+## Cuma dua keadaan, dan urutannya penting:
+##   1. Pemain sedang menempel di muka balok BESAR -> merapat ke muka yang sama.
+##   2. Selain itu -> ikut di belakang pemain.
+##
+## Balok kecil sengaja tidak dibantu. Kalau pendamping ikut merapat ke setiap
+## balok, dia akan sering berdiri tepat di petak yang pemain butuhkan
+## berikutnya -- dan teman yang menghalangi jalan lebih menjengkelkan daripada
+## teman yang menunggu.
+func _arahkan_pendamping(delta: float) -> void:
+	var pemain: Node2D = _fish[0]
+	var teman: Node2D = _fish[1]
+	if not is_instance_valid(pemain) or not is_instance_valid(teman):
+		return
+
+	_petak_dibantu = Vector2i(-1, -1)
+	var slot := _slot_bantuan(pemain)
+	var titik: Vector2 = slot if slot.is_finite() else _titik_ikut(pemain)
+	teman.tujuan_npc = _lewat_kisi(teman.global_position, titik)
+	_jaga_pendamping_tidak_macet(pemain, teman, delta)
+
+
+## Menerjemahkan "aku mau ke sana" jadi "petak berikutnya yang harus kudatangi".
+##
+## Berenang lurus ke tujuan TIDAK cukup di papan Sokoban. Balok dan batu
+## membentuk lorong, dan ikan yang mengarah lurus akan menempel di sisi balok
+## lalu berhenti di situ selamanya -- pemain lalu menunggu teman yang tidak akan
+## pernah datang. Jadi jalurnya dicari di atas kisi dulu.
+func _lewat_kisi(dari_pos: Vector2, tujuan_pos: Vector2) -> Vector2:
+	var dari := _petak_dari(dari_pos)
+	var tujuan := _petak_dari(tujuan_pos)
+	# Sudah sepetak dengan tujuannya: langsung ke titik persisnya, supaya
+	# pendamping berhenti di posisi mendorong yang tepat, bukan di tengah petak.
+	if dari == tujuan:
+		return tujuan_pos
+	return tengah_petak(_langkah_menuju(dari, tujuan))
+
+
+func _petak_dari(pos: Vector2) -> Vector2i:
+	var relatif := (pos - titik_awal) / lebar_petak
+	return Vector2i(
+		clampi(int(floor(relatif.x)), 0, _kolom - 1),
+		clampi(int(floor(relatif.y)), 0, _baris - 1)
+	)
+
+
+func _bisa_dilewati(p: Vector2i) -> bool:
+	return _di_dalam(p) and _isi[p.y][p.x] == Isi.KOSONG
+
+
+## Petak pertama pada jalur terpendek dari `dari` ke `tujuan`.
+##
+## Pencarian lebar (BFS) biasa. Papannya cuma 50 petak dan dihitung ulang tiap
+## frame -- itu jauh lebih murah daripada menyimpan jalur lalu harus ingat
+## membatalkannya setiap kali ada balok bergeser.
+func _langkah_menuju(dari: Vector2i, tujuan: Vector2i) -> Vector2i:
+	if not _bisa_dilewati(dari) or not _bisa_dilewati(tujuan):
+		return dari
+
+	var asal := {dari: dari}
+	var antre: Array[Vector2i] = [dari]
+
+	while not antre.is_empty():
+		var p: Vector2i = antre.pop_front()
+		if p == tujuan:
+			# Telusuri balik sampai petak yang tepat sesudah titik berangkat.
+			var langkah := p
+			while asal[langkah] != dari:
+				langkah = asal[langkah]
+			return langkah
+		for arah in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]:
+			var q: Vector2i = p + arah
+			if asal.has(q) or not _bisa_dilewati(q):
+				continue
+			asal[q] = p
+			antre.append(q)
+
+	# Tidak ada jalur -- misalnya tujuannya terkurung balok. Diam di tempat
+	# lebih baik daripada menggasak dinding; jaring pengaman yang mengurus
+	# sisanya kalau keadaan ini berlangsung lama.
+	return dari
+
+
+## Titik di zona dorong balok besar yang sedang ditekan pemain, atau Vector2.INF
+## kalau pemain memang tidak sedang menekan balok besar mana pun.
+func _slot_bantuan(pemain: Node2D) -> Vector2:
+	for p in _balok.keys():
+		var balok = _balok[p]
+		if not is_instance_valid(balok) or not balok.besar or balok.sibuk:
+			continue
+		for arah in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]:
+			if not _di_zona(pemain, p, arah):
+				continue
+			if not _boleh_pindah(p, arah):
+				continue
+			var d := Vector2(arah)
+			var pusat_zona: Vector2 = tengah_petak(p) - d * lebar_petak * 0.8
+			# Pendamping berdiri di SEBERANG pemain, bukan menumpuk di atasnya.
+			# Dua ikan yang bertindihan persis membuat pemain kehilangan jejak
+			# ikan mana yang dia pegang -- itu keluhan nyata dari versi lama.
+			var tegak := Vector2(-d.y, d.x)
+			var sisi := signf(tegak.dot(pemain.global_position - pusat_zona))
+			if is_zero_approx(sisi):
+				sisi = 1.0
+			_petak_dibantu = p
+			return pusat_zona - tegak * sisi * lebar_petak * 0.3
+	return Vector2.INF
+
+
+## Apakah ikan berada di zona dorong balok p untuk arah tertentu -- ukuran yang
+## sama persis dipakai _ikan_yang_mendorong(), supaya pendamping tidak pernah
+## berhenti di tempat yang ternyata tidak dihitung.
+func _di_zona(ikan: Node2D, p: Vector2i, arah: Vector2i) -> bool:
+	var d := Vector2(arah)
+	var selisih: Vector2 = ikan.global_position - tengah_petak(p)
+	var mundur := -selisih.dot(d)
+	var samping := absf(selisih.dot(Vector2(-d.y, d.x)))
+	return mundur >= lebar_petak * 0.3 and mundur <= lebar_petak * 1.2 \
+		and samping <= lebar_petak * 0.5
+
+
+## Berenang mengekor, sedikit di belakang dan agak ke samping.
+func _titik_ikut(pemain: Node2D) -> Vector2:
+	var arah: Vector2 = pemain.arah_niat
+	if arah.is_zero_approx():
+		arah = Vector2.RIGHT if pemain.velocity.x >= 0.0 else Vector2.LEFT
+	arah = arah.normalized()
+	return pemain.global_position - arah * lebar_petak * 0.55 \
+		+ Vector2(-arah.y, arah.x) * lebar_petak * 0.22
+
+
+## Jaring pengaman: kalau pendamping tersangkut lama dan jauh, dia menyusul.
+##
+## Papan Sokoban penuh sudut, dan ikan yang berenang lurus ke tujuannya bisa
+## terjepit di sudut dalam tanpa pernah lepas. Mencari jalur sungguhan untuk
+## papan sekecil ini berlebihan; yang penting pemain tidak pernah terkunci
+## gara-gara temannya nyangkut di seberang peta.
+func _jaga_pendamping_tidak_macet(pemain: Node2D, teman: Node2D, delta: float) -> void:
+	var jarak: float = teman.global_position.distance_to(teman.tujuan_npc)
+	if jarak < lebar_petak * 0.5 or teman.velocity.length() > 40.0:
+		_teman_macet = 0.0
+		return
+
+	_teman_macet += delta
+	if _teman_macet < 3.5:
+		return
+	_teman_macet = 0.0
+	teman.global_position = pemain.global_position - Vector2(lebar_petak * 0.4, 0.0)
+	teman.velocity = Vector2.ZERO
+	AudioManager.play("switch_fish", -6.0, 1.25)
 
 
 ## Menentukan apakah balok di petak p sedang didorong, ke mana, dan oleh berapa
@@ -393,6 +587,15 @@ func _ikan_yang_mendorong(p: Vector2i, arah: Vector2i) -> int:
 			var niat: Vector2 = ikan.arah_niat
 			if niat.length() < 0.3 or niat.normalized().dot(d) < 0.55:
 				continue
+		elif p != _petak_dibantu:
+			# Pendamping cuma dihitung untuk balok yang SENGAJA dia bantu.
+			#
+			# Tanpa syarat ini dia mendorong apa pun yang kebetulan dilewatinya:
+			# berenang menyusul pemain lewat sisi sebuah balok kecil sudah cukup
+			# untuk menggesernya. Di Sokoban satu dorongan tak diniatkan bisa
+			# mematikan papan -- dan pemain akan menyalahkan dirinya sendiri
+			# untuk langkah yang bukan dia yang lakukan.
+			continue
 		jumlah += 1
 	return jumlah
 
@@ -453,7 +656,7 @@ func _hitung_air(dari_dorongan: bool) -> void:
 			var q: Vector2i = p + arah
 			if not _di_dalam(q) or terjangkau.has(q):
 				continue
-			if _isi[q.y][q.x] != Isi.KOSONG:
+			if _isi[q.y][q.x] != Isi.KOSONG or not _lorong[q.y][q.x]:
 				continue
 			terjangkau[q] = true
 			antre.append(q)
@@ -501,10 +704,6 @@ func _unhandled_input(event: InputEvent) -> void:
 	if _phase != Phase.BERMAIN:
 		return
 
-	if event.is_action_pressed("switch_fish"):
-		_set_active(1 - _active_index)
-		return
-
 	# R mengulang papan dari awal. Sokoban WAJIB punya ini: satu dorongan yang
 	# salah bisa membuat papan mustahil diselesaikan, dan pemain yang terjebak
 	# tanpa jalan keluar akan menyimpulkan game-nya rusak.
@@ -513,30 +712,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		_try_select_by_point(get_global_mouse_position())
-
-
-func _try_select_by_point(point: Vector2) -> void:
-	var best := -1
-	var best_distance := 110.0
-	for i in _fish.size():
-		var distance: float = point.distance_to(_fish[i].global_position)
-		if distance < best_distance:
-			best_distance = distance
-			best = i
-	if best >= 0:
-		_set_active(best)
-
 
 func _set_active(index: int) -> void:
-	if index == _active_index and _fish[index].is_active:
-		return
 	_active_index = index
 	for i in _fish.size():
 		_fish[i].set_active(i == index)
-	_hud.set_active_fish(_fish[index].display_name, _fish[index].marker_color)
-	AudioManager.play("switch_fish", -3.0, 1.0 if index == 0 else 1.12)
+	_hud.set_active_fish(_fish[index].display_name, _fish[index].marker_color,
+		_fish[1].display_name)
 
 
 # --- Selesai ----------------------------------------------------------------

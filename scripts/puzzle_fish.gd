@@ -42,6 +42,27 @@ signal became_active
 
 var is_active: bool = false
 
+## Ikan ini digerakkan wasit, bukan oleh tombol pemain.
+##
+## Dipakai Wader B di Map 3. Sebelumnya pemain harus memarkir ikan kedua, tekan
+## Tab, lalu kembali mendorong dengan ikan pertama -- tiga langkah administratif
+## untuk satu tindakan. Sebagai NPC dia menyusul sendiri, dan pemain cuma
+## memikirkan puzzle-nya.
+var npc: bool = false : set = _pasang_npc
+## Titik yang sedang dituju NPC. Diisi wasit tiap frame.
+var tujuan_npc: Vector2 = Vector2.ZERO
+
+@export_group("Saat jadi NPC")
+## Sedekat apa NPC dianggap sudah sampai, lalu berhenti.
+@export var npc_radius_henti: float = 26.0
+## Mulai jarak berapa NPC melambat. Tanpa perlambatan dia akan terus melewati
+## titik tujuannya lalu berbalik, dan terlihat seperti ikan yang bingung.
+@export var npc_jarak_lambat: float = 130.0
+## NPC sengaja sedikit lebih pelan daripada pemain. Kalau sama cepat, dia selalu
+## menempel persis dan terasa seperti bayangan; sedikit tertinggal membuatnya
+## terbaca sebagai teman yang menyusul.
+@export var npc_laju: float = 0.88
+
 ## Arah yang DIMINTA pemain frame ini, sebelum tabrakan memangkasnya.
 ##
 ## Ini bukan duplikat dari velocity, dan bedanya menentukan apakah mekanik
@@ -82,7 +103,9 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if is_active:
+	if npc:
+		_berenang_sebagai_npc(delta)
+	elif is_active:
 		var direction := Input.get_vector("swim_left", "swim_right", "swim_up", "swim_down")
 		arah_niat = direction
 		if direction.is_zero_approx():
@@ -117,6 +140,40 @@ func _physics_process(delta: float) -> void:
 	_animate(delta)
 
 
+## Berenang ke titik yang ditentukan wasit.
+##
+## Sengaja memakai akselerasi dan rem yang SAMA persis dengan ikan pemain.
+## Kalau NPC digerakkan dengan rumus lain, dia akan terlihat meluncur dengan
+## hukum fisika yang berbeda dari ikan yang dipegang pemain -- dan mata cepat
+## sekali menangkap itu sebagai "yang satu ini bukan makhluk yang sama".
+func _berenang_sebagai_npc(delta: float) -> void:
+	var ke_tujuan := tujuan_npc - global_position
+	var jarak := ke_tujuan.length()
+
+	if jarak <= npc_radius_henti:
+		arah_niat = Vector2.ZERO
+		velocity = velocity.move_toward(Vector2.ZERO, water_drag * delta)
+		return
+
+	var arah := ke_tujuan / jarak
+	arah_niat = arah
+	# Melambat saat mendekat. Tanpa ini dia melewati tujuannya lalu berbalik
+	# terus-menerus, dan di dekat balok itu berarti dia keluar-masuk zona dorong
+	# -- baloknya jadi maju-berhenti-maju tanpa sebab yang kelihatan.
+	var pelan := clampf(jarak / npc_jarak_lambat, 0.3, 1.0)
+	velocity = velocity.move_toward(arah * max_speed * npc_laju * pelan, acceleration * delta)
+
+
+## Dijadikan setter, bukan variabel biasa, karena tampilannya harus ikut berubah
+## saat itu juga. Wasit menyalakan npc SESUDAH ikan ini selesai _ready(), jadi
+## kalau tidak ada setter, ikan sempat tergambar redup -- dan redup itu bahasa
+## untuk "ikan yang sedang tidak kamu pegang", bukan untuk teman.
+func _pasang_npc(nilai: bool) -> void:
+	npc = nilai
+	if _sprite != null:
+		_refresh_marker()
+
+
 func set_active(value: bool) -> void:
 	if is_active == value:
 		return
@@ -131,7 +188,13 @@ func set_active(value: bool) -> void:
 ## dipakai supaya tetap terbaca oleh pemain yang sulit membedakan warna.
 func _refresh_marker() -> void:
 	_marker.visible = is_active
-	_sprite.modulate = marker_color if is_active else marker_color.darkened(0.45)
+	# NPC tidak pernah diredupkan. Peredupan itu bahasa untuk "ikan ini sedang
+	# tidak kamu pegang, tapi bisa kamu ambil alih" -- dan Wader B bukan itu
+	# lagi. Teman yang selalu pucat terbaca sebagai teman yang mati.
+	if npc:
+		_sprite.modulate = marker_color
+	else:
+		_sprite.modulate = marker_color if is_active else marker_color.darkened(0.45)
 	if is_active:
 		var tween := create_tween()
 		tween.tween_property(_marker, "scale", Vector2(1.25, 1.25), 0.08)

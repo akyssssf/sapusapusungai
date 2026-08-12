@@ -254,25 +254,26 @@ const BRIEFINGS := {
 	},
 	3: {
 		"judul": "KALI JEROAN",
-		"tujuan": "Dorong balok bambu keluar dari lorong sampai airnya tembus dari HULU (kanan) ke MULUT SUNGAI (kiri).",
+		"tujuan": "Dorong balok bambu keluar dari lorong air sampai airnya tembus dari HULU (kanan) ke MULUT SUNGAI (kiri). Wader B ikut sendiri -- kamu cuma memegang satu ikan.",
 		"kontrol": [
 			["W A S D  /  panah", "berenang, dan mendorong balok"],
-			["Tab  /  Q  /  klik ikan", "ganti ikan yang kamu kendalikan"],
 			["R", "ulangi papan dari awal"],
 			["Esc", "menu jeda"],
 		],
 		"bahaya": [
 			"Tidak ada yang bisa membunuhmu di sini. Yang bisa gagal cuma rencanamu.",
 			"Balok cuma bisa DIDORONG, tidak bisa ditarik. Balok yang terlanjur mentok tidak bisa dibawa kembali.",
+			"Wader B tidak akan pernah mendorong balok yang tidak sedang kamu dorong -- dia tidak akan merusak rencanamu.",
 			"Kalau papannya jadi buntu, tekan R untuk mengulang. Itu bukan kalah, itu bagian dari berpikir.",
 			"Makin banyak dorongan yang kamu pakai, makin kecil bonusnya.",
 		],
 		"cara": [
 			"Berenanglah menekan sisi balok. Muka yang bisa didorong akan MENYALA lengkap dengan panah arahnya.",
-			"Balok KECIL cukup satu ikan. Balok bertulisan 2 IKAN hanya bergerak kalau kedua ikan menekan sisi yang sama.",
-			"Ikan yang kamu tinggalkan tetap dihitung mendorong selama posisinya benar -- dia tidak perlu bergerak.",
-			"Lorong tengah satu-satunya jalan air. Kantong di atas dan bawah buntu, jadi itulah tempat membuang balok.",
-			"Tidak semua kolom punya kantong. Sebagian balok harus digeser menyamping dulu sebelum bisa dikeluarkan.",
+			"Kamu cuma memegang Wader A. Wader B mengikutimu sendiri -- tidak ada tombol ganti ikan.",
+			"Balok KECIL cukup kamu sendiri. Balok bertulisan 2 IKAN hanya bergerak kalau Wader B sudah ikut merapat, jadi tunggu sebentar sampai dia sampai.",
+			"Lorong yang gelap itu jalan airnya. Petak yang lebih terang di atas dan bawah adalah TEPIAN -- kamu bisa berenang di sana, tapi air tidak lewat.",
+			"Jadi buanglah balok ke tepian, dan pakai tepian juga untuk memutari balok yang mau kamu dorong dari sisi lain.",
+			"Tidak semua kolom punya jalan keluar ke tepian. Sebagian balok harus digeser menyamping dulu.",
 		],
 	},
 }
